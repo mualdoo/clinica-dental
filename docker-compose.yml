@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout:  5s
+      retries:  5
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dental-network
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    networks:
+      - dental-network
+    depends_on:
+      - auth-service
+# INSERT_NEW_DEPENDENCY_HERE
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      - PORT=3001
+      - DB_NAME=auth_db
+      - DB_USER=auth_user
+      - DB_PASS=secret_auth
+      - DB_HOST=postgres
+    networks:
+      - dental-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+# INSERT_NEW_SERVICE_HERE
+
+networks:
+  dental-network:
+    driver: bridge
+
+volumes:
+  pg_data:
