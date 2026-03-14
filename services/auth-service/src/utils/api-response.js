@@ -1,3 +1,0 @@
-const ok = (res, result) => {
-    
-}
