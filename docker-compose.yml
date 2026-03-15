@@ -30,7 +30,10 @@ services:
 # INSERT_NEW_DEPENDENCY_HERE
 
   auth-service:
-    build: ./services/auth-service
+    build:
+      context: ./services/auth-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
     environment:
       - PORT=3001
       - DB_NAME=auth_db

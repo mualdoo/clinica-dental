@@ -1,14 +1,14 @@
 const sequelize = require('../config/database');
 const User = require('./user');
-const PendingPatient = require('./pending-patient');
+const PatientToken = require('./patient-token');
 
-User.hasOne(PendingPatient, {
+User.hasOne(PatientToken, {
     foreignKey: {
         name: 'patientId',
         allowNull: false
     }
 });
-PendingPatient.belongsTo(User, {
+PatientToken.belongsTo(User, {
     foreignKey: {
         name: 'patientId',
         allowNull: false
@@ -19,4 +19,4 @@ const syncDatabase = async () => {
     await sequelize.sync({ alter: true });
 };
 
-module.exports = { sequelize, syncDatabase, User, PendingPatient };
+module.exports = { sequelize, syncDatabase, User, PatientToken };

@@ -2,7 +2,7 @@ const { Model, DataTypes } =require('sequelize');
 const sequelize = require('../config/database');
 const crypto = require('crypto');
 
-class PendingPatient extends Model {
+class PatientToken extends Model {
     isTokenValid(token) {
         if (this.activationToken !== token) {
             return false;
@@ -17,17 +17,17 @@ class PendingPatient extends Model {
     }
 }
 
-const generateToken = (pendingPatient) => {
+const generateToken = (patientToken) => {
     const token = crypto.randomBytes(32).toString('hex');
     
     const dayInMilliseconds = 24 * 60 * 60 * 1000;
     const expiresAt = new Date(Date.now() + dayInMilliseconds);
 
-    pendingPatient.activationToken = token;
-    pendingPatient.expiresAt = expiresAt;
+    patientToken.activationToken = token;
+    patientToken.expiresAt = expiresAt;
 };
 
-PendingPatient.init(
+PatientToken.init(
     {
         activationToken: {
             type: DataTypes.STRING,
@@ -51,4 +51,4 @@ PendingPatient.init(
     }
 );
 
-module.exports = PendingPatient;
+module.exports = PatientToken;
