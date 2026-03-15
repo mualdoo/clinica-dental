@@ -6,6 +6,9 @@ class User extends Model {
     getFullName() {
         return [this.name, this.lastName].join(' ');
     }
+    isVerified() {
+        return this.password != null;
+    }
     verifyPassword(text) {
         return bcrypt.compare(text, this.password);
     }

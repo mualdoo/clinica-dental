@@ -2,9 +2,9 @@ const router = require('express').Router();
 const controller = require('../controllers/user-controller');
 
 router.post('/', controller.addUser);
-router.get('/', controller.getAllUsers);
-router.get('/:id', controller.getUserById);
-router.put('/:id', controller.updateUser);
-router.delete('/:id', controller.deleteUser);
+router.post('/login', controller.login);
+router.post('/register', controller.register);
+router.post('/create-patient-account', controller.createPatientAccount);
+router.patch('/verify-patient-account', controller.verifyPatientAccount);
 
 module.exports = router;

@@ -1,4 +1,33 @@
-const { User } = require('../models');
+const { User, PendingPatient } = require('../models');
+const generateToken = require('../services/token-service');
+
+exports.createPatientAccount = async (req, res) => {
+    try {
+        const { email, name, lastName } = req.body;
+        const user = await User.create({
+            email,
+            name,
+            lastName,
+            role: 'patient'
+        });
+        if (!user) {
+            return res.status(400).json({ message: 'Error adding user' });
+        }
+
+        const pendingPatient = await PendingPatient.create({ patientId: user.id });
+
+        // Publish event to notifications-service
+
+        res.status(201).json(user);
+    } catch (error) {
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            return res.status(400).json({
+                errors: error.errors.map(err => err.message)
+            });
+        }
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 exports.addUser = async (req, res) => {
     try {
@@ -18,16 +47,25 @@ exports.addUser = async (req, res) => {
     }
 };
 
-exports.getAllUsers = async (req, res) => {
+exports.verifyPatientAccount = async (req, res) => {
     try {
-        const users = await User.findAll();
-        if (!users) {
+        const { token, email, password } = req.body;
+        const user = await User.findOne({ where: { email }, include: PendingPatient });
+
+        if (!user) {
             return res.status(400).json({ message: 'User not found' });
         }
+        
+        if (!user.PendingPatient.isTokenValid(token)) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
 
-        res.status(201).json(users);
+        await user.update({ password });
+        await user.PendingPatient.destroy();
+
+        res.status(201).json({ message: 'Account verified' });
     } catch (error) {
-        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+        if (error.name === 'SequelizeValidationError') {
             return res.status(400).json({
                 errors: error.errors.map(err => err.message)
             });
@@ -36,41 +74,64 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-exports.getUserById = async (req, res) => {
+exports.register = async (req, res) => {
     try {
-        const user = await User.findByPk(req.params.id);
+        const user = await User.create(req.body);
+        
         if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+            return res.status(400).json({ message: 'Error adding user' });
         }
 
-        res.status(201).json(user);
+        const token = generateToken(user);
+
+        res.status(201).json({
+            token,
+            user: {
+                email: user.email,
+                role: user.role
+            }
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({
+                errors: error.errors.map(err => err.message)
+            });
+        }
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-exports.updateUser = async (req, res) => {
+exports.login = async (req, res) => {
     try {
-        const user = await User.update(req.body, { where: { id: req.params.id } });
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ where: { email } });
+
         if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+            return res.status(400).json({ message: 'Invalid login' });
+        }
+        if (!user.isVerified) {
+            return res.status(400).json({ message: 'User email not verified' });
+        }
+        if (!user.verifyPassword(password)) {
+            return res.status(400).json({ message: 'Invalid login' });
         }
 
-        res.status(201).json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+        const token = generateToken(user);
 
-exports.deleteUser = async (req, res) => {
-    try {
-        const user = await User.destroy({ where: { id: req.params.id } });
-        if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+        res.status(201).json({
+            token,
+            user: {
+                email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({
+                errors: error.errors.map(err => err.message)
+            });
         }
-
-        res.status(201).json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
