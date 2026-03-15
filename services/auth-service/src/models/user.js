@@ -9,14 +9,17 @@ class User extends Model {
     isVerified() {
         return this.password != null;
     }
-    verifyPassword(text) {
-        return bcrypt.compare(text, this.password);
+    async verifyPassword(text) {
+        return await bcrypt.compare(text, this.password);
     }
 }
 
 const hashIfChanged = async (user) => {
     if (user.changed('password')) {
-        user.password = await bcrypt.hash(user.password, 12);
+        const passwordHashed = await bcrypt.hash(user.password, 12);
+        console.log(passwordHashed);
+        
+        user.password = passwordHashed
     }
 };
 
@@ -55,7 +58,6 @@ User.init(
         paranoid: true,
         hooks: {
             beforeSave: hashIfChanged,
-            beforeUpdate: hashIfChanged
         },
         validate: {
             isPasswordValid() {
