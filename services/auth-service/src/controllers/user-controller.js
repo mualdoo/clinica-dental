@@ -1,6 +1,6 @@
 const { User, PatientToken } = require('../models');
 const generateToken = require('../services/token-service');
-const { ok, fail } = require('@aldop-11/shared');
+const { ok, fail, publishEvent } = require('@aldop-11/shared');
 
 exports.createPatientAccount = async (req, res) => {
     try {
@@ -15,6 +15,15 @@ exports.createPatientAccount = async (req, res) => {
         const patientToken = await PatientToken.create({ patientId: user.id });
 
         // Publish event to notifications-service
+        await publishEvent(
+            'appointment_created_exchange',
+            {
+                email: user.email,
+                fullName: user.getFullName(),
+                token: patientToken.activationToken
+            },
+            process.env.RABBITMQ_URL
+        )
 
         return ok(res, 'Patient created')
     } catch (error) {

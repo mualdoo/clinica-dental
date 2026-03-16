@@ -17,6 +17,23 @@ services:
     networks:
       - dental-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  10
+    networks:
+      - dental-network
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -40,10 +57,27 @@ services:
       - DB_USER=auth_user
       - DB_PASS=secret_auth
       - DB_HOST=postgres
+      - RABBITMQ_URL=amqp://admin:contrasena_segura@rabbitmq:5672
     networks:
       - dental-network
     depends_on:
       postgres:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    environment:
+      - PORT=3006
+      - RABBITMQ_URL=amqp://admin:contrasena_segura@rabbitmq:5672
+      - RESEND_API_KEY=re_GSaiauQy_6fBvCkgx1yMuXMyAZfQ7mufy
+      - EMAIL_FROM=onboarding@resend.dev
+    networks:
+      - dental-network
+    depends_on:
+      rabbitmq:
         condition: service_healthy
 # INSERT_NEW_SERVICE_HERE
 

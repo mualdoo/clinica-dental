@@ -1,0 +1,21 @@
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aldop-11/shared": "^2.0.1",
+    "amqplib": "^0.10.9",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "resend": "^6.9.3",
+    "sequelize": "^6.37.8"
+  }
+}
