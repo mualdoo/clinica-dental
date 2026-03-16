@@ -17,12 +17,12 @@ exports.createPatientAccount = async (req, res) => {
         // Publish event to notifications-service
         await publishEvent(
             'appointment_created_exchange',
+            process.env.RABBITMQ_URL,
             {
                 email: user.email,
                 fullName: user.getFullName(),
                 token: patientToken.activationToken
-            },
-            process.env.RABBITMQ_URL
+            }
         )
 
         return ok(res, 'Patient created')

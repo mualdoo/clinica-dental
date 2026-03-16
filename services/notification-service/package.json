@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aldop-11/shared": "^2.0.1",
+    "@aldop-11/shared": "^2.0.2",
     "amqplib": "^0.10.9",
     "axios": "^1.13.6",
     "dotenv": "^17.3.1",
