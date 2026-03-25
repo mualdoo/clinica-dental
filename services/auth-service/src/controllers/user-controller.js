@@ -23,9 +23,9 @@ exports.createPatientAccount = async (req, res) => {
                 fullName: user.getFullName(),
                 token: patientToken.activationToken
             }
-        )
+        );
 
-        return ok(res, 'Patient created')
+        return ok(res, 'Patient created');
     } catch (error) {
         return fail(res, error, 500);
     }
@@ -53,7 +53,7 @@ exports.register = async (req, res) => {
         const user = await User.create(req.body);
 
         const token = generateToken(user);
-        const responseData = {
+        const dataResponse = {
             token,
             user: {
                 email: user.email,
@@ -61,7 +61,7 @@ exports.register = async (req, res) => {
             }
         };
 
-        return ok(res, responseData, 201);
+        return ok(res, dataResponse, 201);
     } catch (error) {
         return fail(res, error, error.statusCode || 400);
     }
@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
         if (!rightPassword) return fail(res, 'Invallid login');
 
         const token = generateToken(user);
-        const responseData = {
+        const dataResponse = {
             token,
             user: {
                 email: user.email,
@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
             }
         };
 
-        return ok(res, responseData, 201);
+        return ok(res, dataResponse, 201);
     } catch (error) {
         return fail(res, error, error.statusCode || 400);
     }

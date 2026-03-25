@@ -31,6 +31,11 @@ app.use('/auth', createProxyMiddleware({ // Borrar
     target: 'http://auth-service:3001',
     changeOrigin: true
 }));
+
+app.use('/patient', createProxyMiddleware({ // Borrar
+    target: 'http://patient-service:3003',
+    changeOrigin: true
+}));
 // INSERT_NEW_SERVICE_HERE
 
 const PORT = process.env.PORT || 8080;
