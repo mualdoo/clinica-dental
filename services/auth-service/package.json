@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aldop-11/shared": "^2.0.2",
+    "@mualdoo/shared": "^5.0.0",
+    "amqplib": "^0.10.9",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

@@ -1,5 +1,6 @@
 const { Model, DataTypes } =require('sequelize');
 const sequelize = require('../config/database');
+const { encryptInstance, decryptInstance } = require('../services/encryption-service');
 
 class HealthAlert extends Model {}
 
@@ -14,9 +15,10 @@ HealthAlert.init(
             type: DataTypes.ENUM('allergy', 'condition', 'medication', 'other'),
             defaultValue: 'other'
         },
-        title: {
+        content: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            encrypt: true
         },
         createdBy: {
             type: DataTypes.UUID,
@@ -24,7 +26,11 @@ HealthAlert.init(
         }
     },
     {
-        sequelize
+        sequelize,
+        hooks: {
+            beforeSave: encryptInstance,
+            afterFind: decryptInstance
+        }
     }
 );
 

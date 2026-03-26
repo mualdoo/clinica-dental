@@ -1,38 +1,30 @@
-const crypto = require('crypto');
+const { encrypt, decrypt } = require('./crypto-service');
 
-const algorithm = process.env.ALGORITHM;
-const secretKey = process.env.ENCRYPTION_KEY;
-const ivLength = 16;
-
-const encrypt = (text) => {
-    if (text === null || text === undefined || text === '') {
-        return text;
+const encryptInstance = (instance) => {
+    const attributes = instance.constructor.rawAttributes;
+    
+    for (const key in attributes) {
+        if (attributes[key].encrypt && instance.changed(key)) {
+            const value = instance.getDataValue(key);
+            instance.setDataValue(key, encrypt(value))
+        }
     }
+}
 
-    const iv = crypto.randomBytes(ivLength);
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
-
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
-    return iv.toString('hex') + ':' + encrypted;
+const decryptInstance = (result) => {
+    if (!result) return;
+    
+    const instances = Array.isArray(result) ? result : [result];
+    
+    const attributes = instances[0].constructor.rawAttributes;
+    
+    instances.forEach(instance => {
+        for (const key in attributes) {
+            if (attributes[key].encrypt && instance[key]) {
+                instance[key] = decrypt(instance[key]);
+            }
+        }
+    });
 };
 
-const decrypt = (text) => {
-    if (!text || !text.includes(':')) {
-        return text;
-    }
-
-    const parts = text.split(':');
-    const iv = Buffer.from(parts.shift(), 'hex');
-    const encryptedText = parts.join(':');
-
-    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey), iv);
-
-    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
-};
-
-module.exports = { encrypt, decrypt };
+module.exports = { encryptInstance, decryptInstance };

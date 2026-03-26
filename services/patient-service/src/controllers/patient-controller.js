@@ -1,5 +1,5 @@
 const { Patient } = require('../models');
-const { ok, fail, publishEvent } = require('@aldop-11/shared');
+const { ok, fail, publishEvent } = require('@mualdoo/shared');
 
 exports.addPatient = async (req, res) => {
     try {

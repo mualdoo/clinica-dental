@@ -1,26 +1,19 @@
-const { Tooth } = require('../models');
-const { ok, fail } = require('@mualdoo/shared');
+const { HealthAlert } = require('../models');
+const { ok, fail, catchAsync } = require('@mualdoo/shared');
 
-exports.addTooth = async (req, res) => {
-    try {
-        const tooth = await Tooth.create({
-            ...req.body,
-            patientId: req.params.id
-        });
+exports.addAlert = catchAsync(async (req, res) => {
+    const alert = await HealthAlert.create({
+        ...req.body,
+        patientId: req.params.id
+    });
 
-        const dataResponse = {
-            id: tooth.id,
-            number: tooth.number
-        };
-        return ok(res, dataResponse, 201);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
+    const { id, type } = alert;
+    return ok(res, { id, type }, 201);
+});
 
 exports.getAllTeeth = async (req, res) => {
     try {
-        const teeth = await Tooth.findAll({
+        const teeth = await HealthAlert.findAll({
             where: { patientId: req.params.id },
             attributes: ['id', 'number']
         });
@@ -33,7 +26,7 @@ exports.getAllTeeth = async (req, res) => {
 
 exports.getToothById = async (req, res) => {
     try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
+        const tooth = await HealthAlert.findByPk(req.params.toothId);
 
         if (!tooth) return fail(res, 'Tooth not found', 404);
 
@@ -45,7 +38,7 @@ exports.getToothById = async (req, res) => {
 
 exports.getTeethByNumber = async (req, res) => {
     try {
-        const teeth = await Tooth.findAll({
+        const teeth = await HealthAlert.findAll({
             where: {
                 patientId: req.params.id,
                 number: req.params.toothNumber
@@ -60,7 +53,7 @@ exports.getTeethByNumber = async (req, res) => {
 
 exports.updateTooth = async (req, res) => {
     try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
+        const tooth = await HealthAlert.findByPk(req.params.toothId);
 
         if (!tooth) return fail(res, 'Tooth not found', 404);
 
@@ -74,7 +67,7 @@ exports.updateTooth = async (req, res) => {
 
 exports.deleteTooth = async (req, res) => {
     try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
+        const tooth = await HealthAlert.findByPk(req.params.toothId);
 
         if (!tooth) return fail(res, 'Tooth not found', 404);
 

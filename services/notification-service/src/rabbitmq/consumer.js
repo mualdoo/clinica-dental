@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-const { setupConsumer } = require('@aldop-11/shared');
+const { setupConsumer } = require('@mualdoo/shared');
 const { sendAccountVerificationEmail } = require('../services/email-service');
 
 async function startConsumers() {

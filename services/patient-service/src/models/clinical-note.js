@@ -3,28 +3,28 @@ const sequelize = require('../config/database');
 const { Model, DataTypes } = require('sequelize');
 const { encryptInstance, decryptInstance } = require('../services/encryption-service');
 
-class Tooth extends Model {}
+class ClinicalNote extends Model {}
 
-Tooth.init(
+ClinicalNote.init(
     {
         id: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
-        number: {
-            type: DataTypes.INTEGER,
+        addedBy: {
+            type: DataTypes.UUID,
             allowNull: false
         },
-        surface: {
-            type: DataTypes.ENUM('mesial', 'distal', 'vestibular', 'lingual', 'oclusal'),
-            allowNull: false
-        },
-        condition: {
+        // appointmentId: {
+        //     type: DataTypes.UUID,
+        //     allowNull: false
+        // },
+        diagnosis: {
             type: DataTypes.TEXT,
             encrypt: true
         },
-        notes: {
+        plan: {
             type: DataTypes.TEXT,
             encrypt: true
         }
@@ -38,4 +38,4 @@ Tooth.init(
     }
 );
 
-module.exports = Tooth;
+module.exports = ClinicalNote;
