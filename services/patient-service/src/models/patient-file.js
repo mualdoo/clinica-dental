@@ -2,9 +2,9 @@ const { Model, DataTypes } =require('sequelize');
 const sequelize = require('../config/database');
 const { encryptInstance, decryptInstance } = require('../services/encryption-service');
 
-class HealthAlert extends Model {}
+class PatientFile extends Model {}
 
-HealthAlert.init(
+PatientFile.init(
     {
         id: {
             primaryKey: true,
@@ -12,13 +12,24 @@ HealthAlert.init(
             defaultValue: DataTypes.UUIDV4
         },
         type: {
-            type: DataTypes.ENUM('allergy', 'condition', 'medication', 'other'),
+            type: DataTypes.ENUM('x-ray', 'before_photo', 'after_photo', 'document', 'other'),
             defaultValue: 'other'
         },
-        content: {
+        fileName: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        storageKey: {
             type: DataTypes.TEXT,
-            allowNull: false,
-            encrypt: true
+            allowNull: false
+        },
+        mimeType: {
+            type: DataTypes.TEXT,
+            allowNull: false
+        },
+        sizeBytes: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         },
         createdBy: {
             type: DataTypes.UUID,
@@ -34,4 +45,4 @@ HealthAlert.init(
     }
 );
 
-module.exports = HealthAlert;
+module.exports = PatientFile;

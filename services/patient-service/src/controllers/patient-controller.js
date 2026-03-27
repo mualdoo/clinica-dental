@@ -1,5 +1,5 @@
 const { Patient } = require('../models');
-const { BaseService, BaseController } = require('./base-controller');
+const { BaseService, BaseController } = require('./base/base-controller');
 const { ok, catchAsync, publishEvent } = require('@mualdoo/shared');
 const amqp = require('amqplib');
 

@@ -27,6 +27,10 @@ Tooth.init(
         notes: {
             type: DataTypes.TEXT,
             encrypt: true
+        },
+        createdBy: {
+            type: DataTypes.UUID,
+            allowNull: false
         }
     },
     {

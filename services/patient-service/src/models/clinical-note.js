@@ -12,21 +12,29 @@ ClinicalNote.init(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
-        addedBy: {
-            type: DataTypes.UUID,
-            allowNull: false
-        },
         // appointmentId: {
         //     type: DataTypes.UUID,
         //     allowNull: false
         // },
-        diagnosis: {
+        subjective: {
+            type: DataTypes.TEXT,
+            encrypt: true
+        },
+        objective: {
+            type: DataTypes.TEXT,
+            encrypt: true
+        },
+        assessment: {
             type: DataTypes.TEXT,
             encrypt: true
         },
         plan: {
             type: DataTypes.TEXT,
             encrypt: true
+        },
+        createdBy: {
+            type: DataTypes.UUID,
+            allowNull: false
         }
     },
     {
