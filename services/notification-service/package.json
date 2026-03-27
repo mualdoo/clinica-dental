@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mualdoo/shared": "^5.0.0",
+    "@mualdoo/shared": "^5.0.1",
     "amqplib": "^0.10.9",
     "axios": "^1.13.6",
     "dotenv": "^17.3.1",

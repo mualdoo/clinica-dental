@@ -1,80 +1,52 @@
 const { HealthAlert } = require('../models');
-const { ok, fail, catchAsync } = require('@mualdoo/shared');
+const { BaseService, BaseController } = require('./base-controller');
+const { ok, catchAsync } = require('@mualdoo/shared');
 
-exports.addAlert = catchAsync(async (req, res) => {
-    const alert = await HealthAlert.create({
-        ...req.body,
-        patientId: req.params.id
+class HealthAlertService extends BaseService {
+    constructor() {
+        super(HealthAlert);
+    }
+
+    async findAll(patientId) {
+        return this.model.findAll({ where: { patientId } });
+    }
+}
+
+class HealthAlertController extends BaseController {
+    constructor() {
+        super(new HealthAlertService());
+    }
+
+    findAll = catchAsync(async (req, res) => {
+        const response = await this.service.findAll(req.params.id);
+        return ok(res, response);
     });
 
-    const { id, type } = alert;
-    return ok(res, { id, type }, 201);
-});
+    findById = catchAsync(async (req, res) => {
+        const response = await this.service.findById(req.params.alertId);
+        return ok(res, response);
+    });
 
-exports.getAllTeeth = async (req, res) => {
-    try {
-        const teeth = await HealthAlert.findAll({
-            where: { patientId: req.params.id },
-            attributes: ['id', 'number']
+    create = catchAsync(async (req, res) => {
+        const response = await this.service.create({
+            ...req.body,
+            patientId: req.params.id
         });
+        return ok(res, response);
+    });
 
-        return ok(res, teeth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
+    update = catchAsync(async (req, res) => {
+        const response = await this.service.update(
+            req.params.alertId,
+            req.body
+        );
+        return ok(res, response);
+    });
 
-exports.getToothById = async (req, res) => {
-    try {
-        const tooth = await HealthAlert.findByPk(req.params.toothId);
+    remove = catchAsync(async (req, res) => {
+        await this.service.remove(req.params.alertId);
+        return ok(res, 'Item removed');
+    });
+}
 
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        return ok(res, tooth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.getTeethByNumber = async (req, res) => {
-    try {
-        const teeth = await HealthAlert.findAll({
-            where: {
-                patientId: req.params.id,
-                number: req.params.toothNumber
-            }
-        });
-
-        return ok(res, teeth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.updateTooth = async (req, res) => {
-    try {
-        const tooth = await HealthAlert.findByPk(req.params.toothId);
-
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        await tooth.update(req.body);
-
-        return ok(res, 'Tooth updated');
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.deleteTooth = async (req, res) => {
-    try {
-        const tooth = await HealthAlert.findByPk(req.params.toothId);
-
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        await tooth.destroy();
-
-        return ok(res, 'Tooth deleted');
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
+module.exports = new HealthAlertController();

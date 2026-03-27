@@ -1,29 +1,29 @@
 const router = require('express').Router();
-const controller = require('../controllers/patient-controller');
-const toothController = require('../controllers/tooth-controller');
+const patientController = require('../controllers/patient-controller');
 const alertController = require('../controllers/alert-controller');
+const toothController = require('../controllers/tooth-controller');
 
 // Basic patient routes
-router.post('/', controller.addPatient);
-router.get('/', controller.getAllPatients);
-router.get('/:id', controller.getPatientById);
-router.patch('/:id', controller.updatePatient);
-router.delete('/:id', controller.deletePatient);
+router.get('/', patientController.findAll);
+router.get('/:id', patientController.findById);
+router.post('/', patientController.create);
+router.patch('/:id', patientController.update);
+router.delete('/:id', patientController.remove);
 
 // Health alerts
-router.post('/:id/alert', alertController.addAlert);
-// router.get('/:id/alert', alertController.);
-// router.get('/:id/alert/:toothId', alertController.);
-// router.patch('/:id/alert/:toothId', alertController.);
-// router.delete('/:id/alert/:toothId', alertController.);
+router.get('/:id/alert', alertController.findAll);
+router.get('/:id/alert/:alertId', alertController.findById);
+router.post('/:id/alert', alertController.create);
+router.patch('/:id/alert/:alertId', alertController.update);
+router.delete('/:id/alert/:alertId', alertController.remove);
 
 // Odontogram
-router.post('/:id/tooth', toothController.addTooth);
-router.get('/:id/tooth', toothController.getAllTeeth);
-router.get('/:id/tooth/:toothId', toothController.getToothById);
-router.get('/:id/tooth/number/:toothNumber', toothController.getTeethByNumber);
-router.patch('/:id/tooth/:toothId', toothController.updateTooth);
-router.delete('/:id/tooth/:toothId', toothController.deleteTooth);
+router.get('/:id/tooth', toothController.findAll);
+router.get('/:id/tooth/:toothId', toothController.findById);
+router.get('/:id/tooth/number/:toothNumber', toothController.findByNumber);
+router.post('/:id/tooth', toothController.create);
+router.patch('/:id/tooth/:toothId', toothController.update);
+router.delete('/:id/tooth/:toothId', toothController.remove);
 
 // Files
 

@@ -1,87 +1,69 @@
 const { Tooth } = require('../models');
-const { ok, fail } = require('@mualdoo/shared');
+const { BaseService, BaseController } = require('./base-controller');
+const { ok, catchAsync } = require('@mualdoo/shared');
 
-exports.addTooth = async (req, res) => {
-    try {
-        const tooth = await Tooth.create({
+class ToothService extends BaseService {
+    constructor() {
+        super(Tooth);
+    }
+
+    async findAll(patientId) {
+        return this.model.findAll({
+            where: { patientId },
+            attributes: ['id', 'number']
+        });
+    }
+
+    async findByNumber(patientId, number) {
+        return this.model.findAll({
+            where: {
+                patientId,
+                number
+            }
+        });
+    }
+}
+
+class ToothController extends BaseController {
+    constructor() {
+        super(new ToothService());
+    }
+
+    findAll = catchAsync(async (req, res) => {
+        const response = await this.service.findAll(req.params.id);
+        return ok(res, response);
+    });
+
+    findById = catchAsync(async (req, res) => {
+        const response = await this.service.findById(req.params.toothId);
+        return ok(res, response);
+    });
+
+    findByNumber = catchAsync(async (req, res) => {
+        const response = await this.service.findByNumber(req.params.id, req.params.toothNumber);
+        return ok(res, response);
+    });
+
+    create = catchAsync(async (req, res) => {
+        const response = await this.service.create({
             ...req.body,
             patientId: req.params.id
         });
+        return ok(res, response);
+    });
 
-        const dataResponse = {
-            id: tooth.id,
-            number: tooth.number
-        };
-        return ok(res, dataResponse, 201);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
+    update = catchAsync(async (req, res) => {
+        const response = await this.service.update(
+            req.params.toothId,
+            req.body
+        );
+        return ok(res, response);
+    });
 
-exports.getAllTeeth = async (req, res) => {
-    try {
-        const teeth = await Tooth.findAll({
-            where: { patientId: req.params.id },
-            attributes: ['id', 'number']
-        });
+    remove = catchAsync(async (req, res) => {
+        await this.service.remove(req.params.toothId);
+        return ok(res, 'Item removed');
+    });
+}
 
-        return ok(res, teeth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.getToothById = async (req, res) => {
-    try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
-
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        return ok(res, tooth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.getTeethByNumber = async (req, res) => {
-    try {
-        const teeth = await Tooth.findAll({
-            where: {
-                patientId: req.params.id,
-                number: req.params.toothNumber
-            }
-        });
-
-        return ok(res, teeth);
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.updateTooth = async (req, res) => {
-    try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
-
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        await tooth.update(req.body);
-
-        return ok(res, 'Tooth updated');
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
-
-exports.deleteTooth = async (req, res) => {
-    try {
-        const tooth = await Tooth.findByPk(req.params.toothId);
-
-        if (!tooth) return fail(res, 'Tooth not found', 404);
-
-        await tooth.destroy();
-
-        return ok(res, 'Tooth deleted');
-    } catch (error) {
-        return fail(res, error, error.statusCode || 400);
-    }
-};
+module.exports = new ToothController();

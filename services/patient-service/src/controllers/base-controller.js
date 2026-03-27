@@ -1,5 +1,37 @@
 const { ok, AppError, catchAsync } = require('@mualdoo/shared');
 
+class BaseService {
+    constructor(model) {
+        this.model = model;
+    }
+
+    async findAll() {
+        return this.model.findAll();
+    }
+
+    async findById(id) {
+        const instance = await this.model.findByPk(id);
+        if (!instance) throw new AppError('Item not found', 404);
+        return instance
+    }
+
+    async create(data) {
+        return this.model.create(data);
+    }
+
+    async update(id, data) {
+        const instance = await this.model.findByPk(id);
+        if (!instance) throw new AppError('Item not found', 404);
+        return instance.update(data);
+    }
+
+    async remove(id) {
+        const instance = await this.model.findByPk(id);
+        if (!instance) throw new AppError('Item not found', 404);
+        await instance.destroy();
+    }
+}
+
 class BaseController {
     constructor(service) {
         this.service = service;
@@ -31,35 +63,4 @@ class BaseController {
     });
 }
 
-class BaseService {
-    constructor(model) {
-        this.model = model;
-    }
-
-    async findAll() {
-        const result = await this.model.findAll();
-        return result;
-    }
-
-    async findById(id) {
-        return this.model.findByPk(id);
-    }
-
-    async create(data) {
-        return this.model.create(data);
-    }
-
-    async update(id, data) {
-        const instance = await this.model.findByPk(id);
-        if (!instance) throw new AppError('Item not found', 404);
-        return instance.update(data);
-    }
-
-    async remove(id) {
-        const instance = await this.model.findByPk(id);
-        if (!instance) throw new AppError('Item not found', 404);
-        await instance.destroy();
-    }
-}
-
-module.exports = { BaseController, BaseService };
+module.exports = { BaseService, BaseController };

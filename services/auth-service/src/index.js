@@ -3,11 +3,13 @@ const express = require('express');
 const cors = require('cors');
 
 const routes = require('./routes/user-routes');
-const { syncDatabase } = require('./models')
+const { syncDatabase } = require('./models');
+const { startConsumers } = require('./services/rabbit-consumer');
 
 const app = express();
 
 syncDatabase();
+startConsumers();
 
 app.use(cors());
 app.use(express.json());
