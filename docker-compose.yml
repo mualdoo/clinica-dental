@@ -86,6 +86,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  agenda-service:
+    build:
+      context: ./services/agenda-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    env_file:
+      - ./services/agenda-service/.env
+    networks:
+      - dental-network
+    depends_on:
+      postgres:
+        condition: service_healthy
 # INSERT_NEW_SERVICE_HERE
 
 networks:
