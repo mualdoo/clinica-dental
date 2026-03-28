@@ -1,7 +1,7 @@
-const { Patient } = require('../models');
-const { BaseService, BaseController } = require('./base/base-controller');
-const { ok, catchAsync, publishEvent } = require('@mualdoo/shared');
-const amqp = require('amqplib');
+import { Patient } from '../models/index.js';
+import { BaseService, BaseController } from './base/base-controller.js';
+import { ok, catchAsync, publishEvent } from '@mualdoo/shared';
+import amqp from 'amqplib';
 
 class PatientService extends BaseService {
     constructor() {
@@ -36,4 +36,4 @@ class PatientController extends BaseController {
     });
 }
 
-module.exports = new PatientController();
+export default new PatientController();

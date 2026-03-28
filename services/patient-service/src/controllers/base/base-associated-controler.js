@@ -1,13 +1,13 @@
-const { BaseService, BaseController } = require('./base-controller');
-const { ok, catchAsync } = require('@mualdoo/shared');
+import { BaseService, BaseController } from './base-controller.js';
+import { ok, catchAsync } from '@mualdoo/shared';
 
-class BaseAssociatedService extends BaseService {
+export class BaseAssociatedService extends BaseService {
     async findAll(patientId) {
         return this.model.findAll({ where: { patientId } });
     }
 }
 
-class BaseAssociatedController extends BaseController {
+export class BaseAssociatedController extends BaseController {
     findAll = catchAsync(async (req, res) => {
         const response = await this.service.findAll(req.params.id);
         return ok(res, response);
@@ -23,7 +23,7 @@ class BaseAssociatedController extends BaseController {
             ...req.body,
             patientId: req.params.id
         });
-        return ok(res, response);
+        return ok(res, response, 201);
     });
 
     update = catchAsync(async (req, res) => {
@@ -39,5 +39,3 @@ class BaseAssociatedController extends BaseController {
         return ok(res, 'Item removed');
     });
 }
-
-module.exports = { BaseAssociatedService, BaseAssociatedController };

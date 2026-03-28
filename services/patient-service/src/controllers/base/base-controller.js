@@ -1,6 +1,6 @@
-const { ok, AppError, catchAsync } = require('@mualdoo/shared');
+import { ok, AppError, catchAsync } from '@mualdoo/shared';
 
-class BaseService {
+export class BaseService {
     constructor(model) {
         this.model = model;
     }
@@ -32,7 +32,7 @@ class BaseService {
     }
 }
 
-class BaseController {
+export class BaseController {
     constructor(service) {
         this.service = service;
     }
@@ -62,5 +62,3 @@ class BaseController {
         return ok(res, 'Item removed');
     });
 }
-
-module.exports = { BaseService, BaseController };

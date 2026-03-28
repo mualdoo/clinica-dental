@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node src/index.js"
   },
@@ -10,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mualdoo/shared": "^5.0.1",
+    "@mualdoo/shared": "^6.0.1",
     "amqplib": "^0.10.9",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
