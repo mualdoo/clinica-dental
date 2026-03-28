@@ -1,6 +1,6 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
-const { encryptInstance, decryptInstance } = require('../services/encryption-service');
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database.js";
+import { encryptInstance, decryptInstance } from "../services/encryption-service.js";
 
 class PatientFile extends Model {}
 
@@ -15,7 +15,7 @@ PatientFile.init(
             type: DataTypes.ENUM('x-ray', 'before_photo', 'after_photo', 'document', 'other'),
             defaultValue: 'other'
         },
-        fileName: {
+        filename: {
             type: DataTypes.STRING,
             allowNull: false
         },
@@ -45,4 +45,4 @@ PatientFile.init(
     }
 );
 
-module.exports = PatientFile;
+export default PatientFile;

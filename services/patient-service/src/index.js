@@ -1,9 +1,9 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
 
-const routes = require('./routes/patient-routes');
-const { syncDatabase } = require('./models')
+import routes from './routes/patient-routes.js';
+import { syncDatabase } from './models/index.js';
 
 const app = express();
 

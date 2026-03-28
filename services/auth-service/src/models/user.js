@@ -1,6 +1,6 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
-const bcrypt = require('bcrypt');
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
+import { compare, hash } from 'bcrypt';
 
 class User extends Model {
     getFullName() {
@@ -10,13 +10,13 @@ class User extends Model {
         return this.password != null;
     }
     async verifyPassword(text) {
-        return await bcrypt.compare(text, this.password);
+        return await compare(text, this.password);
     }
 }
 
 const hashIfChanged = async (user) => {
     if (user.changed('password')) {
-        const passwordHashed = await bcrypt.hash(user.password, 12);
+        const passwordHashed = await hash(user.password, 12);
         console.log(passwordHashed);
         
         user.password = passwordHashed
@@ -69,4 +69,4 @@ User.init(
     }
 );
 
-module.exports = User;
+export default User;

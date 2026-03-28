@@ -1,9 +1,9 @@
-const sequelize = require('../config/database');
-const Patient = require('./patient');
-const HealthAlert = require('./health-alert');
-const Tooth = require('./tooth');
-const ClinicalNote = require('./clinical-note');
-const PatientFile = require('./patient-file');
+import sequelize from "../config/database.js";
+import Patient from './patient.js';
+import HealthAlert from './health-alert.js';
+import Tooth from './tooth.js';
+import ClinicalNote from './clinical-note.js';
+import PatientFile from './patient-file.js';
 
 Patient.hasMany(HealthAlert, { foreignKey: { name: 'patientId', allowNull: false } });
 HealthAlert.belongsTo(Patient, { foreignKey: { name: 'patientId', allowNull: false } });
@@ -21,4 +21,4 @@ const syncDatabase = async () => {
     await sequelize.sync({ alter: true });
 };
 
-module.exports = { sequelize, syncDatabase, Patient, HealthAlert, Tooth, ClinicalNote, PatientFile };
+export { sequelize, syncDatabase, Patient, HealthAlert, Tooth, ClinicalNote, PatientFile };

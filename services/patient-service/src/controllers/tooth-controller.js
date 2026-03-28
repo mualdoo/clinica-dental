@@ -1,6 +1,6 @@
-const { Tooth } = require('../models');
-const { BaseAssociatedService, BaseAssociatedController } = require('./base/base-associated-controler');
-const { ok, catchAsync } = require('@mualdoo/shared');
+import { Tooth } from '../models/index.js';
+import { BaseAssociatedService, BaseAssociatedController } from './base/base-associated-controler.js';
+import {ok, catchAsync } from '@mualdoo/shared';
 
 class ToothService extends BaseAssociatedService {
     constructor() {
@@ -35,4 +35,4 @@ class ToothController extends BaseAssociatedController {
     });
 }
 
-module.exports = new ToothController();
+export default new ToothController();

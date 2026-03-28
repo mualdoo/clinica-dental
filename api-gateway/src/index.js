@@ -1,7 +1,7 @@
-require('dotenv').config();
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const cors = require('cors');
+import 'dotenv/config';
+import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import cors from 'cors';
 
 // const { verificarToken } = require('./middleware/auth-middleware');
 // const { autorizarRoles } = require('./middleware/roles-middleware');

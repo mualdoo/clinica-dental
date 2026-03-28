@@ -1,9 +1,10 @@
-const router = require('express').Router();
-const patientController = require('../controllers/patient-controller');
-const alertController = require('../controllers/alert-controller');
-const toothController = require('../controllers/tooth-controller');
-const noteController = require('../controllers/note-controller');
-const patientFileController = require('../controllers/patient-file-controller');
+import { Router } from 'express'
+const router = Router();
+import patientController from '../controllers/patient-controller.js';
+import alertController from '../controllers/alert-controller.js';
+import toothController from '../controllers/tooth-controller.js';
+import noteController from '../controllers/note-controller.js';
+import patientFileController from '../controllers/patient-file-controller.js';
 
 // Basic patient routes
 router.get('/', patientController.findAll);
@@ -41,4 +42,4 @@ router.post('/:id/file', patientFileController.create);
 router.patch('/:id/file/:itemId', patientFileController.update);
 router.delete('/:id/file/:itemId', patientFileController.remove);
 
-module.exports = router;
+export default router;

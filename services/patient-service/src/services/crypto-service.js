@@ -1,16 +1,16 @@
-const crypto = require('crypto');
+import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
 
 const algorithm = process.env.ALGORITHM;
 const secretKey = process.env.ENCRYPTION_KEY;
 const ivLength = 16;
 
-const encrypt = (text) => {
+export const encrypt = (text) => {
     if (text === null || text === undefined || text === '') {
         return text;
     }
 
-    const iv = crypto.randomBytes(ivLength);
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
+    const iv = randomBytes(ivLength);
+    const cipher = createCipheriv(algorithm, Buffer.from(secretKey), iv);
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -18,7 +18,7 @@ const encrypt = (text) => {
     return iv.toString('hex') + ':' + encrypted;
 };
 
-const decrypt = (text) => {
+export const decrypt = (text) => {
     if (!text || !text.includes(':')) {
         return text;
     }
@@ -27,12 +27,10 @@ const decrypt = (text) => {
     const iv = Buffer.from(parts.shift(), 'hex');
     const encryptedText = parts.join(':');
 
-    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey), iv);
+    const decipher = createDecipheriv(algorithm, Buffer.from(secretKey), iv);
 
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 
     return decrypted;
 };
-
-module.exports = { encrypt, decrypt };

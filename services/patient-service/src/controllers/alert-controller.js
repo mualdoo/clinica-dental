@@ -1,5 +1,5 @@
-const { HealthAlert } = require('../models');
-const { BaseAssociatedService, BaseAssociatedController } = require('./base/base-associated-controler');
+import { HealthAlert } from '../models/index.js';
+import { BaseAssociatedService, BaseAssociatedController } from './base/base-associated-controler.js';
 
 class HealthAlertService extends BaseAssociatedService {
     constructor() {
@@ -13,4 +13,4 @@ class HealthAlertController extends BaseAssociatedController {
     }
 }
 
-module.exports = new HealthAlertController();
+export default new HealthAlertController();

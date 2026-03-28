@@ -1,5 +1,5 @@
-const { PatientFile } = require('../models');
-const { BaseAssociatedService, BaseAssociatedController } = require('./base/base-associated-controler');
+import { PatientFile } from '../models/index.js';
+import { BaseAssociatedService, BaseAssociatedController } from './base/base-associated-controler.js';
 
 class PatientFileService extends BaseAssociatedService {
     constructor() {
@@ -13,4 +13,4 @@ class PatientFileController extends BaseAssociatedController {
     }
 }
 
-module.exports = new PatientFileController();
+export default new PatientFileController();

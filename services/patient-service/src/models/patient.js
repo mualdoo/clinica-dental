@@ -1,5 +1,5 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database.js";
 
 class Patient extends Model {
     getFullName() {
@@ -46,4 +46,4 @@ Patient.init(
     }
 );
 
-module.exports = Patient;
+export default Patient;

@@ -1,7 +1,6 @@
-const sequelize = require('../config/database');
-
-const { Model, DataTypes } = require('sequelize');
-const { encryptInstance, decryptInstance } = require('../services/encryption-service');
+import { Model, DataTypes} from 'sequelize';
+import sequelize from '../config/database.js';
+import { encryptInstance, decryptInstance } from '../services/encryption-service.js';
 
 class ClinicalNote extends Model {}
 
@@ -46,4 +45,4 @@ ClinicalNote.init(
     }
 );
 
-module.exports = ClinicalNote;
+export default ClinicalNote;
