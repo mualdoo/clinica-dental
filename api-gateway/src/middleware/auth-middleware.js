@@ -1,10 +1,10 @@
-const jwt = require("jsonwebtoken");
+import jwt from 'jsonwebtoken';
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ message: "Token is required" });
+    return res.status(401).json({ message: 'Token is required' });
   }
 
   const token = authHeader.split(" ")[1];
@@ -14,8 +14,8 @@ const authenticateToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ message: "Invalid token" });
+    return res.status(403).json({ message: 'Invalid token' });
   }
 };
 
-module.exports = authenticateToken;
+export default authenticateToken;

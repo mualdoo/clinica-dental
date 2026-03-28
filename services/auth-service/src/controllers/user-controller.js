@@ -1,8 +1,8 @@
-const { User, PatientToken } = require('../models');
-const generateToken = require('../services/token-service');
-const { ok, fail, catchAsync } = require('@mualdoo/shared');
+import { User, PatientToken } from '../models/index.js';
+import generateToken from '../services/token-service.js';
+import { ok, fail, catchAsync } from '@mualdoo/shared';
 
-exports.verifyPatientAccount = catchAsync(async (req, res) => {
+export const verifyPatientAccount = catchAsync(async (req, res) => {
     const { token, email, password } = req.body;
     const user = await User.findOne({ where: { email }, include: PatientToken });
 
@@ -15,7 +15,7 @@ exports.verifyPatientAccount = catchAsync(async (req, res) => {
     return ok(res, 'Account verified');
 });
 
-exports.register = catchAsync(async (req, res) => {
+export const register = catchAsync(async (req, res) => {
     const user = await User.create(req.body);
 
     const token = generateToken(user);
@@ -29,7 +29,7 @@ exports.register = catchAsync(async (req, res) => {
     return ok(res, dataResponse, 201);
 });
 
-exports.login = catchAsync(async (req, res) => {
+export const login = catchAsync(async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ where: { email } });

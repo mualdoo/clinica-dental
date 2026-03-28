@@ -1,10 +1,10 @@
-const amqp = require('amqplib');
-const { setupConsumer } = require('@mualdoo/shared');
-const { createPatientAccount } = require('./patient-account-service');
+import { connect } from 'amqplib';
+import { setupConsumer } from '@mualdoo/shared';
+import createPatientAccount from './patient-account-service.js';
 
-async function startConsumers() {
+export default async function startConsumers() {
     try {
-        const conn = await amqp.connect(process.env.RABBITMQ_URL);
+        const conn = await connect(process.env.RABBITMQ_URL);
         const channel = await conn.createChannel();
 
         channel.prefetch(1);
@@ -25,5 +25,3 @@ async function startConsumers() {
         setTimeout(startConsumers, 5000);
     }
 }
-
-module.exports = { startConsumers }

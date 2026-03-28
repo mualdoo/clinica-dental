@@ -1,6 +1,6 @@
-const amqp = require('amqplib');
-const { User, PatientToken } = require('../models');
-const { publishEvent } = require('@mualdoo/shared');
+import amqp from 'amqplib';
+import { User, PatientToken } from '../models/index.js';
+import { publishEvent } from '@mualdoo/shared';
 
 const createPatientAccount = async(data) => {
     const { email, name, lastName } = data;
@@ -25,4 +25,4 @@ const createPatientAccount = async(data) => {
     );
 };
 
-module.exports = { createPatientAccount };
+export default createPatientAccount;

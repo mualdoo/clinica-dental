@@ -1,6 +1,6 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
-const crypto = require('crypto');
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
+import { randomBytes } from 'crypto';
 
 class PatientToken extends Model {
     isTokenValid(token) {
@@ -18,7 +18,7 @@ class PatientToken extends Model {
 }
 
 const generateToken = (patientToken) => {
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = randomBytes(32).toString('hex');
     
     const dayInMilliseconds = 24 * 60 * 60 * 1000;
     const expiresAt = new Date(Date.now() + dayInMilliseconds);
@@ -51,4 +51,4 @@ PatientToken.init(
     }
 );
 
-module.exports = PatientToken;
+export default PatientToken;

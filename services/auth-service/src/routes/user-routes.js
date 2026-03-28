@@ -1,8 +1,9 @@
-const router = require('express').Router();
-const controller = require('../controllers/user-controller');
+import { Router } from 'express';
+const router = Router();
+import { login, register, verifyPatientAccount } from '../controllers/user-controller.js';
 
-router.post('/login', controller.login);
-router.post('/register', controller.register);
-router.patch('/verify-patient-account', controller.verifyPatientAccount);
+router.post('/login', login);
+router.post('/register', register);
+router.patch('/verify-patient-account', verifyPatientAccount);
 
-module.exports = router;
+export default router;
