@@ -3,8 +3,8 @@ import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import cors from 'cors';
 
-// const { verificarToken } = require('./middleware/auth-middleware');
-// const { autorizarRoles } = require('./middleware/roles-middleware');
+// import authenticateToken from './middleware/auth-middleware.js';
+// import authorizeRole from './middleware/role-middleware.js';
 
 const app = express();
 
@@ -29,6 +29,11 @@ app.get('/', (req, res) => {
 
 app.use('/auth', createProxyMiddleware({ // Borrar
     target: 'http://auth-service:3001',
+    changeOrigin: true
+}));
+
+app.use('/agenda', createProxyMiddleware({ // Borrar
+    target: 'http://agenda-service:3002',
     changeOrigin: true
 }));
 

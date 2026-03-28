@@ -1,6 +1,7 @@
-const router = require('express').Router();
-const cubicleController = require('../controllers/cubicle-controller');
-const appointmentController = require('../controllers/appointment-controller');
+import { Router } from 'express';
+const router = Router();
+import cubicleController from '../controllers/cubicle-controller.js';
+import appointmentController from '../controllers/appointment-controller.js';
 
 // Cubicle
 router.get('/cubicle', cubicleController.findAll);
@@ -16,4 +17,4 @@ router.post('/appointment', appointmentController.create);
 router.patch('/appointment/:id', appointmentController.update);
 router.delete('/appointment/:id', appointmentController.remove);
 
-module.exports = router;
+export default router;

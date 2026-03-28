@@ -1,5 +1,5 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 class Cubicle extends Model {}
 
@@ -22,4 +22,4 @@ Cubicle.init(
     { sequelize }
 );
 
-module.exports = Cubicle;
+export default Cubicle;

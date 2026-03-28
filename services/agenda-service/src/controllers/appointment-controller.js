@@ -1,5 +1,5 @@
-const { Appointment, Cubicle } = require('../models');
-const { BaseService, BaseController } = require('./base/base-controller');
+import { Appointment, Cubicle } from '../models/index.js';
+import { BaseService, BaseController } from './base/base-controller.js';
 
 class AppointmentService extends BaseService {
     constructor() {
@@ -17,6 +17,12 @@ class AppointmentController extends BaseController {
     constructor() {
         super(new AppointmentService());
     }
+
+    create = catchAsync(async (req, res) => {
+        // TODO add validation
+        const response = await this.service.create(req.body);
+        return ok(res, response, 201);
+    });
 }
 
-module.exports = new AppointmentController();
+export default new AppointmentController();

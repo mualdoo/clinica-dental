@@ -1,5 +1,5 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
+import { Model, DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
 class Appointment extends Model {
     isConfirmed() {
@@ -17,12 +17,12 @@ Appointment.init(
         patientId: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            allowNull: false
         },
         doctorId: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            allowNull: false
         },
         startTime: {
             type: DataTypes.DATE,
@@ -41,7 +41,14 @@ Appointment.init(
             defaultValue: null
         }
     },
-    { sequelize }
+    {
+        sequelize,
+        validate: {
+            isTimeValid() {
+                if(this.startTime > this.endTime) throw new Error('Start time cannot be greater than end time');
+            }
+        }
+    }
 );
 
-module.exports = Appointment;
+export default Appointment;

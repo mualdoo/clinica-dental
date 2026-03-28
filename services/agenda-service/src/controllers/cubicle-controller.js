@@ -1,5 +1,5 @@
-const { Cubicle } = require('../models');
-const { BaseService, BaseController } = require('./base/base-controller');
+import { Cubicle } from '../models/index.js';
+import { BaseService, BaseController } from './base/base-controller.js';
 
 class CubicleService extends BaseService {
     constructor() {
@@ -13,4 +13,4 @@ class CubicleController extends BaseController {
     }
 }
 
-module.exports = new CubicleController();
+export default new CubicleController();
