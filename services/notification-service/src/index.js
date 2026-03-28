@@ -1,7 +1,7 @@
-require('dotenv').config();
-const express = require('express');
+import 'dotenv/config';
+import express from 'express';
 
-const { startConsumers } = require('./rabbitmq/consumer');
+import startConsumers from './rabbitmq/consumer.js';
 
 const app = express();
 
