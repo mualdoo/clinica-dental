@@ -1,8 +1,8 @@
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const sendAccountVerificationEmail = async (data) => {
+export const sendAccountVerificationEmail = async (data) => {
     try {
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM,
@@ -21,7 +21,7 @@ const sendAccountVerificationEmail = async (data) => {
     }
 };
 
-const sendAppointmentConfirmationEmail = async (email, data) => {
+export const sendAppointmentConfirmationEmail = async (email, data) => {
     try {
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM,
@@ -40,9 +40,4 @@ const sendAppointmentConfirmationEmail = async (email, data) => {
     } catch (error) {
         console.error("Error enviando email:", error.message);
     }
-};
-
-module.exports = {
-    sendAccountVerificationEmail,
-    sendAppointmentConfirmationEmail
 };

@@ -1,6 +1,6 @@
-const { Model, DataTypes } =require('sequelize');
-const sequelize = require('../config/database');
-const { encryptInstance, decryptInstance } = require('../services/encryption-service');
+import { Model, DataTypes} from 'sequelize';
+import sequelize from '../config/database.js';
+import { encryptInstance, decryptInstance } from '../services/encryption-service.js';
 
 class HealthAlert extends Model {}
 
@@ -34,4 +34,4 @@ HealthAlert.init(
     }
 );
 
-module.exports = HealthAlert;
+export default HealthAlert;

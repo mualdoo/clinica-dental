@@ -1,6 +1,6 @@
-const { encrypt, decrypt } = require('./crypto-service');
+import { encrypt, decrypt } from "./crypto-service.js";
 
-const encryptInstance = (instance) => {
+export const encryptInstance = (instance) => {
     const attributes = instance.constructor.rawAttributes;
     
     for (const key in attributes) {
@@ -11,7 +11,7 @@ const encryptInstance = (instance) => {
     }
 }
 
-const decryptInstance = (result) => {
+export const decryptInstance = (result) => {
     if (!result) return;
     
     const instances = Array.isArray(result) ? result : [result];
@@ -26,5 +26,3 @@ const decryptInstance = (result) => {
         }
     });
 };
-
-module.exports = { encryptInstance, decryptInstance };
