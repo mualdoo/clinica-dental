@@ -58,6 +58,7 @@ export const getInfo = catchAsync(async (req, res) => {
     if(!user) return fail(res, 'Patient not found');
 
     const dataResponse = {
+        email: user.email,
         fullName: user.getFullName(),
         role: user.role
     }

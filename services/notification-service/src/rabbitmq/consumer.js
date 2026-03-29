@@ -1,6 +1,6 @@
 import { connect } from 'amqplib';
 import { setupConsumer } from '@mualdoo/shared';
-import { sendAccountVerificationEmail } from '../services/email-service.js';
+import { sendAccountVerificationEmail, sendAppointmentConfirmationEmail } from '../services/email-service.js';
 
 export default async function startConsumers() {
     try {
@@ -9,13 +9,23 @@ export default async function startConsumers() {
 
         channel.prefetch(1);
         
+        // Consumer after creating a patient account (by system)
+        await setupConsumer(
+            channel,
+            'patient_account_created_exchange',
+            'patient_account_queue',
+            async (data) => {
+                return await sendAccountVerificationEmail(data);
+            }
+        );
+        
         // Consumer after creating an appointment
         await setupConsumer(
             channel,
             'appointment_created_exchange',
-            'appointment_confirm_queue',
+            'appointment_created_queue',
             async (data) => {
-                return await sendAccountVerificationEmail(data);
+                return await sendAppointmentConfirmationEmail(data);
             }
         );
 

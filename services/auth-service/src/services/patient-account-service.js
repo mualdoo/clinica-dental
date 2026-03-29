@@ -15,7 +15,7 @@ const createPatientAccount = async(data) => {
 
     await publishEvent(
         amqp,
-        'appointment_created_exchange',
+        'patient_account_created_exchange',
         process.env.RABBITMQ_URL,
         {
             email: user.email,
