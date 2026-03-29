@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router } from 'express';
 const router = Router();
 import patientController from '../controllers/patient-controller.js';
 import alertController from '../controllers/alert-controller.js';

@@ -21,18 +21,16 @@ export const sendAccountVerificationEmail = async (data) => {
     }
 };
 
-export const sendAppointmentConfirmationEmail = async (email, data) => {
+export const sendAppointmentConfirmationEmail = async (data) => {
     try {
         const response = await resend.emails.send({
             from: process.env.EMAIL_FROM,
-            to: email,
+            to: data.email,
             subject: 'Confirmación de cita médica',
             html: `
+                <h2>Hola ${data.fullName}</h2>
                 <h2>Tu cita ha sido confirmada</h2>
-                <p><strong>Paciente ID:</strong> ${cita.pacienteId}</p>
-                <p><strong>Dentista ID:</strong> ${cita.dentistaId}</p>
-                <p><strong>Fecha:</strong> ${cita.fecha}</p>
-                <p><strong>Motivo:</strong> ${cita.motivo}</p>
+                <p><strong>Fecha:</strong> ${data.appointmentDate}</p>
             `
         });
 
