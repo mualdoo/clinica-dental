@@ -50,3 +50,17 @@ export const login = catchAsync(async (req, res) => {
 
     return ok(res, dataResponse, 201);
 });
+
+export const getInfo = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    
+    const user = await User.findByPk(id);
+    if(!user) return fail(res, 'Patient not found');
+
+    const dataResponse = {
+        fullName: user.getFullName(),
+        role: user.role
+    }
+
+    return ok(res, dataResponse);
+});

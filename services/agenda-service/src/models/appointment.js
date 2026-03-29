@@ -15,12 +15,10 @@ Appointment.init(
             defaultValue: DataTypes.UUIDV4
         },
         patientId: {
-            primaryKey: true,
             type: DataTypes.UUID,
             allowNull: false
         },
-        doctorId: {
-            primaryKey: true,
+        dentistId: {
             type: DataTypes.UUID,
             allowNull: false
         },

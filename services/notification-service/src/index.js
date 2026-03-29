@@ -5,7 +5,7 @@ import startConsumers from './rabbitmq/consumer.js';
 
 const app = express();
 
-startConsumers();
+// startConsumers();
 
 const PORT = process.env.PORT || 3006;
 
