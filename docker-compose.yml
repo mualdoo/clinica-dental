@@ -44,8 +44,9 @@ services:
       - dental-network
     depends_on:
       - auth-service
-      - notification-service
+      - agenda-service
       - patient-service
+      - notification-service
 # INSERT_NEW_DEPENDENCY_HERE
 
   auth-service:
@@ -55,32 +56,6 @@ services:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
     env_file:
       - ./services/auth-service/.env
-    networks:
-      - dental-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  notification-service:
-    build:
-      context: ./services/notification-service
-      args:
-        - GITHUB_TOKEN=${GITHUB_TOKEN}
-    env_file:
-      - ./services/notification-service/.env
-    networks:
-      - dental-network
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-
-  patient-service:
-    build:
-      context: ./services/patient-service
-      args:
-        - GITHUB_TOKEN=${GITHUB_TOKEN}
-    env_file:
-      - ./services/patient-service/.env
     networks:
       - dental-network
     depends_on:
@@ -98,6 +73,45 @@ services:
       - dental-network
     depends_on:
       postgres:
+        condition: service_healthy
+
+  patient-service:
+    build:
+      context: ./services/patient-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    env_file:
+      - ./services/patient-service/.env
+    networks:
+      - dental-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  billing-service:
+    build:
+      context: ./services/billing-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    env_file:
+      - ./services/billing-service/.env
+    networks:
+      - dental-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    env_file:
+      - ./services/notification-service/.env
+    networks:
+      - dental-network
+    depends_on:
+      rabbitmq:
         condition: service_healthy
 # INSERT_NEW_SERVICE_HERE
 

@@ -41,6 +41,11 @@ app.use('/patient', createProxyMiddleware({ // Borrar
     target: 'http://patient-service:3003',
     changeOrigin: true
 }));
+
+app.use('/billing', createProxyMiddleware({ // Borrar
+    target: 'http://billing-service:3004',
+    changeOrigin: true
+}));
 // INSERT_NEW_SERVICE_HERE
 
 const PORT = process.env.PORT || 8080;
