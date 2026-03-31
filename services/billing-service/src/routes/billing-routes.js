@@ -4,7 +4,6 @@ const router = Router();
 import treatmentController from '../controllers/treatment-controller.js';
 import quoteController from '../controllers/quote-controller.js';
 import quoteItemController from '../controllers/quote-item-controller.js';
-import paymentPlanController from '../controllers/payment-plan-controller.js';
 import paymentController from '../controllers/payment-controller.js';
 
 // Treatment
@@ -30,15 +29,8 @@ router.get('/quote-item/:id', quoteItemController.findById);
 router.patch('/quote-item/:id', quoteItemController.update);
 router.delete('/quote-item/:id', quoteItemController.remove);
 
-// Payment Plan
-router.post('/quote/:id/payment-plan', paymentPlanController.create);
-
-router.get('/plan', paymentPlanController.findAll);
-router.get('/plan/:id', paymentPlanController.findById);
-router.patch('/plan/:id/valid-until', paymentPlanController.update);
-
 // Payment
-router.post('/plan/:id/payment', paymentController.create);
+router.post('/quote/:id/payment', paymentController.create);
 
 router.get('/payment', paymentController.findAll);
 router.get('/payment/:id', paymentController.findById);

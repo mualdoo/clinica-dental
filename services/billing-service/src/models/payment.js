@@ -11,7 +11,7 @@ Payment.init(
             defaultValue: DataTypes.UUIDV4
         },
         amount: {
-            type: DataTypes.FLOAT,
+            type: DataTypes.DECIMAL(10,2),
             allowNull: false
         },
         method: {
@@ -20,16 +20,15 @@ Payment.init(
         },
         reference: {
             type: DataTypes.STRING
+        },
+        status: {
+            type: DataTypes.ENUM('pending', 'completed', 'voided', 'refunded'),
+            allowNull: false
         }
     },
     {
         sequelize,
         hooks: {
-            beforeCreate: (paymentInstance, options) => {
-                const PaymentPlan = paymentInstance.sequelize.models.PaymentPlan;
-                
-                const paymentTotal = 
-            },
             beforeUpdate: () => {
                 throw new Error('Payments cannot be changed');
             },

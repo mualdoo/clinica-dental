@@ -10,16 +10,32 @@ QuoteItem.init(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
+        treatmentId: {
+            type: DataTypes.UUID,
+            allowNull: false
+        },
+        quoteId: {
+            type: DataTypes.UUID,
+            allowNull: false
+        },
         toothNumber: {
             type: DataTypes.SMALLINT,
             allowNull: true
         },
         discount: {
             type: DataTypes.FLOAT,
+            defaultValue: 0,
             validate: { min: 0, max: 1 }
         }
     },
-    { sequelize }
+    {
+        sequelize,
+        hooks: {
+            beforeUpdate: (newItem) => {
+                if (newItem.changed('quoteId')) throw new Error('Quote cannot be changed');
+            }
+        }
+    }
 );
 
 export default QuoteItem;

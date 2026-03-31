@@ -1,8 +1,9 @@
-import { Quote, QuoteItem, Treatment } from '../models/index.js';
+import { Quote, QuoteItem, Treatment, Payment } from '../models/index.js';
 import { BaseService, BaseController } from './base/base-controller.js';
 import fetchPatient from '../services/patient-service.js';
+import { ok, AppError, catchAsync } from '@mualdoo/shared';
 
-const verifyPatient = async (patientId) => {
+const validatePatient = async (patientId) => {
     const patient = await fetchPatient(patientId);
     if (!patient) throw new AppError('Patient not found');
 };
@@ -13,14 +14,46 @@ class QuoteService extends BaseService {
     }
     
     async findById(id) {
-        const instance = await this.model.findByPk(id, {
-            include: {
-                model: QuoteItem,
-                include: Treatment
-            }
+        // const instance = await this.model.findByPk(id, {
+        const instance = Quote.findByPk(id, {
+            include: [
+                {
+                    model: QuoteItem,
+                    as: 'items',
+                    attributes: ['id', 'toothNumber', 'discount'],
+                    include: {
+                        model: Treatment,
+                        as: 'treatment',
+                        attributes: { exclude: ['createdAt', 'updatedAt'] }
+                    }
+                },
+                // {
+                //     model: Payment,
+                //     where: {
+                //         status: 'completed'
+                //     }
+                // }
+            ]
         });
         if (!instance) throw new AppError('Item not found', 404);
         return instance
+    }
+
+    async create(data) {
+        const { patientId } = data;
+
+        await validatePatient(patientId);
+        
+        return this.model.create(data);
+    }
+    
+    async update(id, data) {
+        const instance = await this.model.findByPk(id);
+        if (!instance) throw new AppError('Item not found', 404);
+
+        if (data.patientId) validatePatient(data.patientId);
+
+        return instance.update(data);
     }
 }
 
@@ -35,15 +68,6 @@ class QuoteController extends BaseController {
 
         const response = await this.service.findAll({ page, limit, filter: { patientId } });
         return ok(res, response);
-    });
-
-    create = catchAsync(async (req, res) => {
-        const { patientId } = req.body;
-        
-        await verifyPatient(patientId);
-
-        const response = await this.service.create(req.body);
-        return ok(res, response, 201);
     });
 }
 
