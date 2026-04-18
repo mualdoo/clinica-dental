@@ -1,67 +1,71 @@
-import { User, PatientToken } from '../models/index.js';
-import generateToken from '../services/token-service.js';
-import { ok, fail, catchAsync } from '@mualdoo/shared';
+import { User, PatientToken } from '../models/index.js'
+import generateToken from '../services/token-service.js'
+import { ok, fail, catchAsync } from '@mualdoo/shared'
 
 export const verifyPatientAccount = catchAsync(async (req, res) => {
-    const { token, email, password } = req.body;
-    const user = await User.findOne({ where: { email }, include: PatientToken });
+    const { token, email, password } = req.body
+    const user = await User.findOne({ where: { email }, include: PatientToken })
 
-    if (!user) return fail(res, 'User not found');
-    if (!user.PatientToken.isTokenValid(token)) return fail(res, 'Invalid or expired token');
+    if (!user) return fail(res, 'User not found')
+    if (!user.PatientToken.isTokenValid(token))
+        return fail(res, 'Invalid or expired token')
 
-    await user.update({ password });
-    await user.PatientToken.destroy();
+    await user.update({ password })
+    await user.PatientToken.destroy()
 
-    return ok(res, 'Account verified');
-});
+    return ok(res, 'Account verified')
+})
 
 export const register = catchAsync(async (req, res) => {
-    const user = await User.create(req.body);
+    const user = await User.create({
+        ...req.body,
+        role: 'patient',
+    })
 
-    const token = generateToken(user);
+    const token = generateToken(user)
     const dataResponse = {
         token,
         user: {
             email: user.email,
-            role: user.role
-        }
-    };
-    return ok(res, dataResponse, 201);
-});
+            role: user.role,
+        },
+    }
+    return ok(res, dataResponse, 201)
+})
 
 export const login = catchAsync(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email } })
 
-    if (!user) return fail(res, 'Invallid login');
-    if (!user.isVerified()) return fail(res, 'User email is not verified');
-    const rightPassword = await user.verifyPassword(password);
-    if (!rightPassword) return fail(res, 'Invallid login');
+    if (!user) return fail(res, 'Invallid login')
+    if (!user.isVerified()) return fail(res, 'User email is not verified')
+    const rightPassword = await user.verifyPassword(password)
+    if (!rightPassword) return fail(res, 'Invallid login')
 
-    const token = generateToken(user);
+    const token = generateToken(user)
     const dataResponse = {
         token,
         user: {
             email: user.email,
-            role: user.role
-        }
-    };
+            role: user.role,
+        },
+    }
 
-    return ok(res, dataResponse, 201);
-});
+    return ok(res, dataResponse, 201)
+})
 
 export const getInfo = catchAsync(async (req, res) => {
-    const { id } = req.params;
-    
-    const user = await User.findByPk(id);
-    if(!user) return fail(res, 'Patient not found');
+    const { id } = req.params
+
+    const user = await User.findByPk(id)
+    if (!user) return fail(res, 'Patient not found')
 
     const dataResponse = {
         email: user.email,
         fullName: user.getFullName(),
-        role: user.role
+        role: user.role,
     }
 
-    return ok(res, dataResponse);
-});
+    return ok(res, dataResponse)
+})
