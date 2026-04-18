@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,10 +5,10 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ['CMD-SHELL', 'pg_isready -U admin']
       interval: 5s
-      timeout:  5s
-      retries:  5
+      timeout: 5s
+      retries: 5
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql
@@ -21,23 +19,23 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
       interval: 10s
-      timeout:  5s
-      retries:  10
+      timeout: 5s
+      retries: 10
     networks:
       - dental-network
 
   api-gateway:
     build: ./api-gateway
     ports:
-      - "8080:8080"
+      - '8080:8080'
     env_file:
       - ./api-gateway/.env
     networks:
@@ -46,8 +44,31 @@ services:
       - auth-service
       - agenda-service
       - patient-service
+      - billing-service
       - notification-service
-# INSERT_NEW_DEPENDENCY_HERE
+  # INSERT_NEW_DEPENDENCY_HERE
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./frontend/.env
+    networks:
+      - dental-network
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
 
   auth-service:
     build:
