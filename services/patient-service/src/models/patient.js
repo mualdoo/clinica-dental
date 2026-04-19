@@ -5,6 +5,9 @@ class Patient extends Model {
     getFullName() {
         return [this.name, this.lastName].join(' ')
     }
+    verifyOwnership(newId, newAuthUserId) {
+        return this.id === newId && this.authUserId === newAuthUserId
+    }
 }
 
 Patient.init(

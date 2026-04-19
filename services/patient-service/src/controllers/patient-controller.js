@@ -8,10 +8,47 @@ class PatientService extends BaseService {
         super(Patient)
     }
 
+    _verifyOwnership(headereUser, patient) {
+        if (headereUser.role !== 'patient') return
+
+        const valid = patient.verifyOwnership(
+            headereUser.activePatientId,
+            headereUser.authUserId
+        )
+
+        if (!valid) throw new AppError('Permission denied', 403)
+    }
+
     async findAll() {
         return this.model.findAll({
             attributes: ['id', 'name', 'lastName', 'email', 'phone'],
         })
+    }
+
+    async findById(user, id) {
+        const instance = await this.model.findByPk(id)
+
+        if (!instance) throw new AppError('Item not found', 404)
+        this._verifyOwnership(user, instance)
+
+        return instance
+    }
+
+    async create(user, data) {
+        if (user.role === 'patient') {
+            data.authUserId = user.authUserId
+        }
+
+        return this.model.create(data)
+    }
+
+    async update(user, id, data) {
+        const instance = await this.model.findByPk(id)
+
+        if (!instance) throw new AppError('Item not found', 404)
+        this._verifyOwnership(user, instance)
+
+        return instance.update(data)
     }
 
     async verifyPatient(where) {
@@ -20,13 +57,32 @@ class PatientService extends BaseService {
     }
 }
 
+export const patientService = new PatientService()
+
 class PatientController extends BaseController {
     constructor() {
-        super(new PatientService())
+        super(patientService)
     }
 
+    _getUserInHeaders(req) {
+        const user = {}
+        user.authUserId = req.headers['x-user-id']
+        user.activePatientId = req.headers['x-active-patient-id']
+        user.role = req.headers['x-user-role']
+        return user
+    }
+
+    findById = catchAsync(async (req, res) => {
+        const user = this._getUserInHeaders(req)
+
+        const response = await this.service.findById(user, req.params.id)
+        return ok(res, response)
+    })
+
     create = catchAsync(async (req, res) => {
-        const patient = await this.service.create(req.body)
+        const user = this._getUserInHeaders(req)
+
+        const patient = await this.service.create(user, req.body)
 
         await publishEvent(
             amqp,
@@ -40,6 +96,17 @@ class PatientController extends BaseController {
         )
 
         return ok(res, patient, 201)
+    })
+
+    update = catchAsync(async (req, res) => {
+        const user = this._getUserInHeaders(req)
+
+        const response = await this.service.update(
+            user,
+            req.params.id,
+            req.body
+        )
+        return ok(res, response)
     })
 
     verifyPatient = catchAsync(async (req, res) => {
@@ -62,4 +129,4 @@ class PatientController extends BaseController {
     })
 }
 
-export default new PatientController()
+export const patientController = new PatientController()

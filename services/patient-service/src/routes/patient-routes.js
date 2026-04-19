@@ -1,25 +1,47 @@
 import { Router } from 'express'
 const router = Router()
-import patientController from '../controllers/patient-controller.js'
-import alertController from '../controllers/alert-controller.js'
-import toothController from '../controllers/tooth-controller.js'
-import noteController from '../controllers/note-controller.js'
-import patientFileController from '../controllers/patient-file-controller.js'
+import { patientController } from '../controllers/patient-controller.js'
+import { healthAlertController } from '../controllers/alert-controller.js'
+import { toothController } from '../controllers/tooth-controller.js'
+import { clinicalNoteController } from '../controllers/note-controller.js'
+import { patientFileController } from '../controllers/patient-file-controller.js'
+
 import { verifyInternalKey } from '../middleware/internal.js'
+import { authorize } from '../middleware/role-check.js'
 
 // Basic patient routes
-router.get('/', patientController.findAll)
-router.get('/:id', patientController.findById)
-router.post('/', patientController.create)
-router.patch('/:id', patientController.update)
-router.delete('/:id', patientController.remove)
+router.get(
+    '/',
+    authorize(['admin', 'receptionist', 'dentist']),
+    patientController.findAll
+)
+router.get(
+    '/:id',
+    authorize(['admin', 'receptionist', 'dentist', 'patient']),
+    patientController.findById
+)
+router.post(
+    '/',
+    authorize(['admin', 'receptionist', 'patient']),
+    patientController.create
+)
+router.patch(
+    '/:id',
+    authorize(['admin', 'receptionist', 'patient']),
+    patientController.update
+)
+router.delete(
+    '/:id',
+    authorize(['admin', 'receptionist']),
+    patientController.remove
+)
 
 // Health alerts
-router.get('/:id/alert', alertController.findAll)
-router.get('/:id/alert/:itemId', alertController.findById)
-router.post('/:id/alert', alertController.create)
-router.patch('/:id/alert/:itemId', alertController.update)
-router.delete('/:id/alert/:itemId', alertController.remove)
+router.get('/:id/alert', healthAlertController.findAll)
+router.get('/:id/alert/:itemId', healthAlertController.findById)
+router.post('/:id/alert', healthAlertController.create)
+router.patch('/:id/alert/:itemId', healthAlertController.update)
+router.delete('/:id/alert/:itemId', healthAlertController.remove)
 
 // Odontogram
 router.get('/:id/tooth', toothController.findAll)
@@ -30,11 +52,11 @@ router.patch('/:id/tooth/:itemId', toothController.update)
 router.delete('/:id/tooth/:itemId', toothController.remove)
 
 // Clinical notes
-router.get('/:id/note', noteController.findAll)
-router.get('/:id/note/:itemId', noteController.findById)
-router.post('/:id/note', noteController.create)
-router.patch('/:id/note/:itemId', noteController.update)
-router.delete('/:id/note/:itemId', noteController.remove)
+router.get('/:id/note', clinicalNoteController.findAll)
+router.get('/:id/note/:itemId', clinicalNoteController.findById)
+router.post('/:id/note', clinicalNoteController.create)
+router.patch('/:id/note/:itemId', clinicalNoteController.update)
+router.delete('/:id/note/:itemId', clinicalNoteController.remove)
 
 // Files
 router.get('/:id/file', patientFileController.findAll)
