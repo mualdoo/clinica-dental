@@ -1,14 +1,14 @@
-import 'dotenv/config';
-import express from 'express';
+import 'dotenv/config'
+import express from 'express'
 
-import startConsumers from './rabbitmq/consumer.js';
+import startConsumers from './rabbitmq/consumer.js'
 
-const app = express();
+const app = express()
 
 // startConsumers();
 
-const PORT = process.env.PORT || 3006;
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
-    console.log(`notification-service running on port: ${PORT}`);
-});
+    console.log(`notification-service running on port: ${PORT}`)
+})

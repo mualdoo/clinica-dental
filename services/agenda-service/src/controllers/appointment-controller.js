@@ -68,9 +68,10 @@ class AppointmentService extends BaseService {
     }
 
     async _verifyOwnership(user) {
+        if (user.role !== 'patient') return
+
         const valid = await verifyPatient(user.activePatientId, user.authUserId)
-        if (user.role === 'patient' && !valid)
-            throw new AppError('Permission denied', 403)
+        if (!valid) throw new AppError('Permission denied', 403)
     }
 
     async findAll(user, { page, limit, filter = {} } = {}) {
@@ -78,7 +79,6 @@ class AppointmentService extends BaseService {
 
         if (user.role === 'patient') {
             filter.patientId = user.activePatientId
-            filter.authUserId = user.authUserId
         }
 
         const result = await this.model.findAndCountAll({

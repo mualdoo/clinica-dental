@@ -1,17 +1,31 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const PATIENT_SERVICE_URL = 'http://patient-service:3003';
-
-export default async (patientId) => {
+export const verifyPatient = async (patientId, authUserId) => {
     try {
         const response = await axios.get(
-            `${PATIENT_SERVICE_URL}/${patientId}`
-        );
-        
-        if (!response.data.success) return null
-        
-        return response.data.data;
+            `${process.env.PATIENT_SERVICE_URL}/internal/verify-patient?patientId=${patientId}&authUserId=${authUserId}`,
+            { headers: { 'x-internal-key': process.env.INTERNAL_SERVICE_KEY } }
+        )
+
+        if (!response.data.success) return false
+
+        return response.data.data.valid
     } catch (error) {
-        return null;
+        return false
     }
-};
+}
+
+export const patientExists = async (patientId) => {
+    try {
+        const response = await axios.get(
+            `${process.env.PATIENT_SERVICE_URL}/internal/patient-exists?patientId=${patientId}`,
+            { headers: { 'x-internal-key': process.env.INTERNAL_SERVICE_KEY } }
+        )
+
+        if (!response.data.success) return false
+
+        return response.data.data.valid
+    } catch (error) {
+        return false
+    }
+}

@@ -47,7 +47,12 @@ router.delete('/:id/file/:itemId', patientFileController.remove)
 router.get(
     'internal/verify-patient',
     verifyInternalKey,
-    patientController.findById
+    patientController.verifyPatient
+)
+router.get(
+    'internal/patient-exists',
+    verifyInternalKey,
+    patientController.patientExists
 )
 
 export default router

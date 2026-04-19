@@ -14,13 +14,8 @@ class PatientService extends BaseService {
         })
     }
 
-    async verifyPatient(patientId, authUserId) {
-        const patient = await this.model.findOne({
-            where: {
-                id: patientId,
-                authUserId,
-            },
-        })
+    async verifyPatient(where) {
+        const patient = await this.model.findOne({ where })
         return !!patient
     }
 }
@@ -50,9 +45,20 @@ class PatientController extends BaseController {
     verifyPatient = catchAsync(async (req, res) => {
         const { patientId, authUserId } = req.query
 
-        const valid = await this.service.verifyPatient(patientId, authUserId)
+        const valid = await this.service.verifyPatient({
+            id: patientId,
+            authUserId,
+        })
 
         return ok(res, valid)
+    })
+
+    patientExists = catchAsync(async (req, res) => {
+        const { patientId } = req.query
+
+        const exists = await this.service.verifyPatient({ patientId })
+
+        return ok(res, exists)
     })
 }
 
