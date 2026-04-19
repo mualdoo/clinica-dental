@@ -6,14 +6,20 @@ import cookieParser from 'cookie-parser'
 
 import { authenticateToken } from './middleware/auth-middleware.js'
 
-const getProxyMidleware = (target) => {
+const getProxyMidleware = (target, options = {}) => {
     return createProxyMiddleware({
         target,
         changeOrigin: true,
         onProxyReq: (proxyReq, req) => {
             proxyReq.setHeader('x-user-id', req.headers['x-user-id'])
             proxyReq.setHeader('x-user-role', req.headers['x-user-role'])
+            if (req.headers['x-active-patient-id'])
+                proxyReq.setHeader(
+                    'x-active-patient-id',
+                    req.headers['x-active-patient-id']
+                )
         },
+        ...options,
     })
 }
 
@@ -30,6 +36,16 @@ app.use(cookieParser())
 app.get('/', (req, res) => {
     res.json({ message: 'API Gateway funcionando' })
 })
+
+app.post(
+    '/auth/admin/register-user',
+    authenticateToken,
+    getProxyMidleware('http://auth-service:3001', {
+        pathRewrite: {
+            '^/auth': '',
+        },
+    })
+)
 
 app.use(
     '/auth',

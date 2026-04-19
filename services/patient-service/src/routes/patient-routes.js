@@ -5,6 +5,7 @@ import alertController from '../controllers/alert-controller.js'
 import toothController from '../controllers/tooth-controller.js'
 import noteController from '../controllers/note-controller.js'
 import patientFileController from '../controllers/patient-file-controller.js'
+import { verifyInternalKey } from '../middleware/internal.js'
 
 // Basic patient routes
 router.get('/', patientController.findAll)
@@ -43,6 +44,10 @@ router.patch('/:id/file/:itemId', patientFileController.update)
 router.delete('/:id/file/:itemId', patientFileController.remove)
 
 // Internal
-router.get('internal/verify-patient', patientController.findById)
+router.get(
+    'internal/verify-patient',
+    verifyInternalKey,
+    patientController.findById
+)
 
 export default router

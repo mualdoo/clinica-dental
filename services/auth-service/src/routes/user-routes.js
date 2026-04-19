@@ -1,21 +1,22 @@
 import { Router } from 'express'
 const router = Router()
-import {
-    register,
-    login,
-    refreshToken,
-    logout,
-    verifyPatientAccount,
-    getInfo,
-} from '../controllers/user-controller.js'
+import * as controller from '../controllers/user-controller.js'
+import { authorize } from '../middleware/role-check.js'
+import { verifyInternalKey } from '../middleware/internal.js'
 
-router.post('/register', register)
-router.post('/login', login)
-router.post('/refresh', refreshToken)
-router.post('/logout', logout)
-router.patch('/verify-patient-account', verifyPatientAccount)
+router.post('/register', controller.registerPatient)
+router.post('/login', controller.login)
+router.post('/refresh', controller.refreshToken)
+router.post('/logout', controller.logout)
+router.patch('/verify-patient-account', controller.verifyPatientAccount)
+
+router.post(
+    '/admin/register-user',
+    authorize(['admin']),
+    controller.registerUser
+)
 
 // Only accessed by agenda-service
-router.get('/user-info/:id', getInfo)
+router.get('/user-info/:id', verifyInternalKey, controller.getInfo)
 
 export default router

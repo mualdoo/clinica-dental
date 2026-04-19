@@ -25,18 +25,15 @@ const setCookieToken = (res, refreshToken, days = 7) => {
     })
 }
 
-export const register = catchAsync(async (req, res) => {
-    const user = await User.create({
-        ...req.body,
-        role: 'patient',
-    })
+const register = async (res, data) => {
+    const user = await User.create(data)
 
     const { accessToken, refreshToken } = generateToken(user)
     await user.update({ refreshToken })
 
     setCookieToken(res, refreshToken)
 
-    const dataResponse = {
+    return {
         user: {
             id: user.id,
             email: user.email,
@@ -44,6 +41,18 @@ export const register = catchAsync(async (req, res) => {
         },
         accessToken,
     }
+}
+
+export const registerPatient = catchAsync(async (req, res) => {
+    const dataResponse = await register(res, {
+        ...req.body,
+        role: 'patient',
+    })
+    return ok(res, dataResponse, 201)
+})
+
+export const registerUser = catchAsync(async (req, res) => {
+    const dataResponse = await register(res, req.body)
     return ok(res, dataResponse, 201)
 })
 
