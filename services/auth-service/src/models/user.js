@@ -52,6 +52,10 @@ User.init(
             type: DataTypes.ENUM('dentist', 'admin', 'patient', 'receptionist'),
             defaultValue: 'patient',
         },
+        refreshToken: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
     },
     {
         sequelize,

@@ -2,9 +2,20 @@ import 'dotenv/config'
 import express from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 
-// import authenticateToken from './middleware/auth-middleware.js';
-// import authorizeRole from './middleware/role-middleware.js';
+import { authenticateToken } from './middleware/auth-middleware.js'
+
+const getProxyMidleware = (target) => {
+    return createProxyMiddleware({
+        target,
+        changeOrigin: true,
+        onProxyReq: (proxyReq, req) => {
+            proxyReq.setHeader('x-user-id', req.headers['x-user-id'])
+            proxyReq.setHeader('x-user-role', req.headers['x-user-role'])
+        },
+    })
+}
 
 const app = express()
 
@@ -14,25 +25,15 @@ app.use(
         credentials: true,
     })
 )
+app.use(cookieParser())
 
 app.get('/', (req, res) => {
     res.json({ message: 'API Gateway funcionando' })
 })
 
-// app.use(
-//     '/paciente',
-//     verificarToken,
-//     autorizarRoles('admin', 'dentista'),
-//     createProxyMiddleware({
-//         target: 'http://paciente-service:8080',
-//         changeOrigin: true
-//     })
-// );
-
 app.use(
     '/auth',
     createProxyMiddleware({
-        // Borrar
         target: 'http://auth-service:3001',
         changeOrigin: true,
     })
@@ -40,31 +41,21 @@ app.use(
 
 app.use(
     '/agenda',
-    createProxyMiddleware({
-        // Borrar
-        target: 'http://agenda-service:3002',
-        changeOrigin: true,
-    })
+    authenticateToken,
+    getProxyMidleware('http://agenda-service:3002')
 )
 
 app.use(
     '/patient',
-    createProxyMiddleware({
-        // Borrar
-        target: 'http://patient-service:3003',
-        changeOrigin: true,
-    })
+    authenticateToken,
+    getProxyMidleware('http://patient-service:3003')
 )
 
 app.use(
     '/billing',
-    createProxyMiddleware({
-        // Borrar
-        target: 'http://billing-service:3004',
-        changeOrigin: true,
-    })
+    authenticateToken,
+    getProxyMidleware('http://billing-service:3004')
 )
-// INSERT_NEW_SERVICE_HERE
 
 const PORT = process.env.PORT
 const HOST = process.env.HOST

@@ -1,10 +1,10 @@
-const authorizeRole = (...admittedRoles) => {
-  return (req, res, next) => {
-    if (!admittedRoles.includes(req.user.rol)) {
-      return res.status(403).json({ message: "Access denied" });
-    }
-    next();
-  };
-};
+export const authorize = (allowedRoles) => {
+    return (req, res, next) => {
+        const userRole = req.headers['x-user-role']
 
-export default authorizeRole;
+        if (!allowedRoles.includes(userRole)) {
+            return res.statur(403).json({ message: 'Invalid role' })
+        }
+        next()
+    }
+}
