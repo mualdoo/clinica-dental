@@ -1,57 +1,61 @@
-import { ok, AppError, catchAsync } from '@mualdoo/shared';
-import { Quote, QuoteItem } from '../models/index.js';
-import { BaseService, BaseController } from './base/base-controller.js';
+import { ok, AppError, catchAsync } from '@mualdoo/shared'
+import { Quote, QuoteItem } from '../models/index.js'
+import { BaseService, BaseController } from './base/base-controller.js'
 
 const validateItem = async (quoteId) => {
-    const quote = await Quote.findByPk(quoteId);
-    if (!quote) throw new AppError('Quote not found');
-    
-    if (quote.isActive()) throw new AppError('Active quotes cannot be changed');
-};
+    const quote = await Quote.findByPk(quoteId)
+    if (!quote) throw new AppError('Quote not found')
+
+    if (quote.isActive()) throw new AppError('Active quotes cannot be changed')
+}
 
 class QuoteItemService extends BaseService {
     constructor() {
-        super(QuoteItem);
+        super(QuoteItem)
     }
 
     async create(data) {
-        await validateItem(data.quoteId);
+        await validateItem(data.quoteId)
 
-        return this.model.create(data);
+        return this.model.create(data)
     }
 
     async update(id, data) {
-        const instance = await this.model.findByPk(id, { include: Quote });
+        const instance = await this.model.findByPk(id, { include: Quote })
 
-        if (!instance) throw new AppError('Item not found', 404);
-        if (instance.Quote.isActive()) throw new AppError('Active quotes cannot be changed');
+        if (!instance) throw new AppError('Item not found', 404)
+        if (instance.Quote.isActive())
+            throw new AppError('Active quotes cannot be changed')
 
-        return instance.update(data);
+        return instance.update(data)
     }
 
     async remove(id) {
-        const instance = await this.model.findByPk(id, { include: Quote });
+        const instance = await this.model.findByPk(id, { include: Quote })
 
-        if (!instance) throw new AppError('Item not found', 404);
-        if (instance.Quote.isActive()) throw new AppError('Active quotes cannot be changed');
-        
-        await instance.destroy();
+        if (!instance) throw new AppError('Item not found', 404)
+        if (instance.Quote.isActive())
+            throw new AppError('Active quotes cannot be changed')
+
+        await instance.destroy()
     }
 }
+
+export const quoteItemService = new QuoteItemService()
 
 class QuoteItemController extends BaseController {
     constructor() {
-        super(new QuoteItemService());
+        super(quoteItemService)
     }
 
     create = catchAsync(async (req, res) => {
-        const { id } = req.params;
+        const { id } = req.params
         const response = await this.service.create({
             ...req.body,
-            quoteId: id
-        });
-        return ok(res, response, 201);
-    });
+            quoteId: id,
+        })
+        return ok(res, response, 201)
+    })
 }
 
-export default new QuoteItemController();
+export const quoteItemController = new QuoteItemController()

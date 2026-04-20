@@ -1,38 +1,19 @@
-import { Tooth } from '../models/index.js';
-import { BaseAssociatedService, BaseAssociatedController } from './base/base-associated-controler.js';
-import {ok, catchAsync } from '@mualdoo/shared';
+import { Tooth } from '../models/index.js'
+import { BaseService, BaseController } from './base/base-controler.js'
+import { ok, catchAsync } from '@mualdoo/shared'
 
-class ToothService extends BaseAssociatedService {
+class ToothService extends BaseService {
     constructor() {
-        super(Tooth);
-    }
-
-    async findAll(patientId) {
-        return this.model.findAll({
-            where: { patientId },
-            attributes: ['id', 'number']
-        });
-    }
-
-    async findByNumber(patientId, number) {
-        return this.model.findAll({
-            where: {
-                patientId,
-                number
-            }
-        });
+        super(Tooth)
     }
 }
 
-class ToothController extends BaseAssociatedController {
-    constructor() {
-        super(new ToothService());
-    }
+export const toothService = new ToothService()
 
-    findByNumber = catchAsync(async (req, res) => {
-        const response = await this.service.findByNumber(req.params.id, req.params.toothNumber);
-        return ok(res, response);
-    });
+class ToothController extends BaseController {
+    constructor() {
+        super(toothService)
+    }
 }
 
-export default new ToothController();
+export const toothController = new ToothController()

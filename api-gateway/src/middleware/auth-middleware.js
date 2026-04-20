@@ -1,21 +1,23 @@
-import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken'
 
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+export const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers.authorization
 
-  if (!authHeader) {
-    return res.status(401).json({ message: 'Token is required' });
-  }
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Token is required' })
+    }
 
-  const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1]
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
-  }
-};
+    jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decodedUser) => {
+        if (err)
+            return res.status(403).json({ message: 'Token expired or invalid' })
 
-export default authenticateToken;
+        req.headers['x-user-id'] = decodedUser.id
+        req.headers['x-user-role'] = decodedUser.role
+        if (decodedUser.activePatientId)
+            req.headers['x-active-patient-id'] = decodedUser.activePatientId
+
+        next()
+    })
+}

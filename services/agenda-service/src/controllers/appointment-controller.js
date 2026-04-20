@@ -1,111 +1,186 @@
-import { Op } from 'sequelize';
-import { ok, catchAsync, AppError, publishEvent } from '@mualdoo/shared';
-import { Appointment, Cubicle } from '../models/index.js';
-import { BaseService, BaseController } from './base/base-controller.js';
-import fetchUser from '../services/auth-service.js';
-import amqp from 'amqplib';
+import { Op } from 'sequelize'
+import { ok, catchAsync, AppError, publishEvent } from '@mualdoo/shared'
+import { Appointment, Cubicle } from '../models/index.js'
+import { BaseService, BaseController } from './base/base-controller.js'
+import fetchUser from '../services/auth-service.js'
+import verifyPatient from '../services/patient-service.js'
+import amqp from 'amqplib'
 
 const buildAppointmentFilter = (query) => {
-    const { cubicleId, patientId, dentistId, startTime, endTime, status } = query;
-    const where = {};
+    const { cubicleId, patientId, dentistId, startTime, endTime, status } =
+        query
+    const where = {}
 
-    if (cubicleId) where.cubicleId = cubicleId;
-    if (patientId) where.patientId = patientId;
-    if (dentistId) where.dentistId = dentistId;
-    if (status) where.status = status;
+    if (cubicleId) where.cubicleId = cubicleId
+    if (patientId) where.patientId = patientId
+    if (dentistId) where.dentistId = dentistId
+    if (status) where.status = status
 
     if (startTime || endTime) {
-        where.startTime = {};
+        where.startTime = {}
 
-        if (startTime) where.startTime[Op.gte] = new Date(startTime);
-        if (endTime) where.startTime[Op.lte] = new Date(endTime);
+        if (startTime) where.startTime[Op.gte] = new Date(startTime)
+        if (endTime) where.startTime[Op.lte] = new Date(endTime)
     }
-    return where;
-};
+    return where
+}
 
-const validateUser = async (id, role) => {
-    const user = await fetchUser(id);
-    if (!user || user.role !== role) throw new AppError(`${role} not found`);
-    return user;
-};
+const validateDentist = async (id) => {
+    const dentist = await fetchUser(id)
+    if (!dentist || dentist.role !== 'dentist')
+        throw new AppError('Dentist not found')
+    return dentist
+}
 
 const validateSchedule = async (data, id = null) => {
-    const { cubicleId, patientId, dentistId, startTime, endTime } = data;
+    const { cubicleId, patientId, dentistId, startTime, endTime } = data
 
-    const conditions = [];
-    if (cubicleId) conditions.push({ cubicleId });
-    if (patientId) conditions.push({ patientId });
-    if (dentistId) conditions.push({ dentistId });
+    const conditions = []
+    if (cubicleId) conditions.push({ cubicleId })
+    if (patientId) conditions.push({ patientId })
+    if (dentistId) conditions.push({ dentistId })
 
-    if (conditions.length === 0) return;
+    if (conditions.length === 0) return
 
     const whereClause = {
         status: 'scheduled',
         startTime: { [Op.lt]: endTime },
         endTime: { [Op.gt]: startTime },
-        [Op.or]: conditions
-    };
-    if (id) whereClause.id = { [Op.ne]: id };
-
-    const collision = await Appointment.findOne({ where: whereClause });
-    
-    if (collision) {
-        if (cubicleId && collision.cubicleId === cubicleId) throw new AppError('Cubicle occupied');
-        if (patientId && collision.patientId === patientId) throw new AppError('Patient occupied');
-        if (dentistId && collision.dentistId === dentistId) throw new AppError('Dentist occupied');
+        [Op.or]: conditions,
     }
-};
+    if (id) whereClause.id = { [Op.ne]: id }
+
+    const collision = await Appointment.findOne({ where: whereClause })
+
+    if (collision) {
+        if (cubicleId && collision.cubicleId === cubicleId)
+            throw new AppError('Cubicle occupied')
+        if (patientId && collision.patientId === patientId)
+            throw new AppError('Patient occupied')
+        if (dentistId && collision.dentistId === dentistId)
+            throw new AppError('Dentist occupied')
+    }
+}
 
 class AppointmentService extends BaseService {
     constructor() {
-        super(Appointment);
+        super(Appointment)
     }
 
-    async findById(id) {
-        const instance = await this.model.findByPk(id, { include: Cubicle });
-        if (!instance) throw new AppError('Item not found', 404);
-        return instance
+    async _verifyOwnership(user) {
+        if (user.role !== 'patient') return
+
+        const valid = await verifyPatient(user.activePatientId, user.authUserId)
+        if (!valid) throw new AppError('Permission denied', 403)
     }
 
-    async findAll({ page, limit, filter = {} } = {}) {
-        const offset = (page - 1) * limit;
+    async findAll(user, { page, limit, filter = {} } = {}) {
+        const offset = (page - 1) * limit
+
+        if (user.role === 'patient') {
+            filter.patientId = user.activePatientId
+        }
+
         const result = await this.model.findAndCountAll({
             order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            where: filter
-        });
+            where: filter,
+        })
 
         return {
             data: result.rows,
             total: result.count,
             page: parseInt(page),
-            totalPages: Math.ceil(result.count / limit)
-        };
+            totalPages: Math.ceil(result.count / limit),
+        }
+    }
+
+    async findById(user, id) {
+        const instance = await this.model.findByPk(id, {
+            include: Cubicle,
+        })
+
+        if (!instance) throw new AppError('Item not found', 404)
+        await this._verifyOwnership(user)
+
+        return instance
+    }
+
+    async create(user, data) {
+        if (user.role === 'patient') {
+            data.patientId = user.activePatientId
+        }
+
+        await validateDentist(data.dentistId)
+        await validateSchedule(data)
+
+        return this.model.create(data)
+    }
+
+    async update(user, id, data) {
+        const instance = await this.model.findByPk(id)
+
+        if (!instance) throw new AppError('Item not found', 404)
+
+        await this._verifyOwnership(user)
+        if (data.dentistId) await validateDentist(data.dentistId)
+        await validateSchedule(data, id)
+
+        return instance.update(data)
+    }
+
+    async remove(user, id) {
+        const instance = await this.model.findByPk(id)
+
+        if (!instance) throw new AppError('Item not found', 404)
+        await this._verifyOwnership(user)
+
+        await instance.destroy()
     }
 }
 
+export const appointmentService = new AppointmentService()
+
 class AppointmentController extends BaseController {
     constructor() {
-        super(new AppointmentService());
+        super(appointmentService)
+    }
+
+    _getUserInHeaders(req) {
+        const user = {}
+        user.authUserId = req.headers['x-user-id']
+        user.activePatientId = req.headers['x-active-patient-id']
+        user.role = req.headers['x-user-role']
+        return user
     }
 
     findAll = catchAsync(async (req, res) => {
-        const { page = 1, limit = 10 } = req.query;
-        const filter = buildAppointmentFilter(req.query);
-        
-        const response = await this.service.findAll({ page, limit, filter });
-        return ok(res, response);
-    });
+        const { page = 1, limit = 10 } = req.query
+        const filter = buildAppointmentFilter(req.query)
+        const user = this._getUserInHeaders(req)
+
+        const response = await this.service.findAll(user, {
+            page,
+            limit,
+            filter,
+        })
+        return ok(res, response)
+    })
+
+    findById = catchAsync(async (req, res) => {
+        const user = this._getUserInHeaders(req)
+
+        const response = await this.service.findById(user, req.params.id)
+        return ok(res, response)
+    })
 
     create = catchAsync(async (req, res) => {
-        const { patientId, dentistId } = req.body;
+        const { patientId, dentistId } = req.body
 
-        const patient = await validateUser(patientId, 'patient');
-        await validateUser(dentistId, 'dentist');
-        await validateSchedule(req.body);
+        const user = this._getUserInHeaders(req)
 
-        const appointment = await this.service.create(req.body);
+        const appointment = await this.service.create(user, req.body)
 
         await publishEvent(
             amqp,
@@ -114,24 +189,30 @@ class AppointmentController extends BaseController {
             {
                 email: patient.email,
                 fullName: patient.fullName,
-                appointmentDate: appointment.startTime
+                appointmentDate: appointment.startTime,
             }
-        );
+        )
 
-        return ok(res, appointment, 201);
-    });
+        return ok(res, appointment, 201)
+    })
 
     update = catchAsync(async (req, res) => {
-        const { patientId, dentistId } = req.body;
-        const { id } = req.params;
+        const user = this._getUserInHeaders(req)
 
-        if (patientId) await validateUser(patientId, 'patient');
-        if (dentistId) await validateUser(dentistId, 'dentist');
-        await validateSchedule(req.body, id);
-        
-        const response = await this.service.update(id, req.body);
-        return ok(res, response);
-    });
+        const appointment = await this.service.update(
+            user,
+            req.params.id,
+            req.body
+        )
+        return ok(res, appointment)
+    })
+
+    remove = catchAsync(async (req, res) => {
+        const user = this._getUserInHeaders(req)
+
+        await this.service.remove(user, req.params.id)
+        return ok(res, 'Item removed')
+    })
 }
 
-export default new AppointmentController();
+export const appointmentController = new AppointmentController()

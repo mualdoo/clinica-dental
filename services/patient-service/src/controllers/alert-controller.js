@@ -1,16 +1,18 @@
-import { HealthAlert } from '../models/index.js';
-import { BaseAssociatedService, BaseAssociatedController } from './base/base-associated-controler.js';
+import { HealthAlert } from '../models/index.js'
+import { BaseService, BaseController } from './base/base-controler.js'
 
-class HealthAlertService extends BaseAssociatedService {
+class HealthAlertService extends BaseService {
     constructor() {
-        super(HealthAlert);
+        super(HealthAlert)
     }
 }
 
-class HealthAlertController extends BaseAssociatedController {
+export const healthAlertService = new HealthAlertService()
+
+class HealthAlertController extends BaseController {
     constructor() {
-        super(new HealthAlertService());
+        super(healthAlertService)
     }
 }
 
-export default new HealthAlertController();
+export const healthAlertController = new HealthAlertController()
