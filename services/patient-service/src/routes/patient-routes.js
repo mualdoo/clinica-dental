@@ -12,7 +12,7 @@ import { authorize } from '../middleware/role-check.js'
 // Basic patient routes
 router.get(
     '/',
-    authorize(['admin', 'receptionist', 'dentist']),
+    authorize(['admin', 'receptionist', 'dentist', 'patient']),
     patientController.findAll
 )
 router.get(

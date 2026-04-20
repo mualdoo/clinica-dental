@@ -18,8 +18,13 @@ class PatientService {
         if (!valid) throw new AppError('Permission denied', 403)
     }
 
-    async findAll({ page, limit, filter = {} } = {}) {
+    async findAll(user, { page, limit, filter = {} } = {}) {
         const offset = (page - 1) * limit
+
+        if (user.role === 'patient') {
+            filter.authUserId = user.authUserId
+        }
+
         const result = await this.model.findAndCountAll({
             order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
@@ -112,8 +117,9 @@ class PatientController {
 
     findAll = catchAsync(async (req, res) => {
         const { page = 1, limit = 10 } = req.query
+        const user = this._getUserInHeaders(req)
 
-        const response = await this.service.findAll({ page, limit })
+        const response = await this.service.findAll(user, { page, limit })
         return ok(res, response)
     })
 
