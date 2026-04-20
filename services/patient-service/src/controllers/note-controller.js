@@ -1,10 +1,7 @@
 import { ClinicalNote } from '../models/index.js'
-import {
-    BaseAssociatedService,
-    BaseAssociatedController,
-} from './base/base-associated-controler.js'
+import { BaseService, BaseController } from './base/base-controler.js'
 
-class ClinicalNoteService extends BaseAssociatedService {
+class ClinicalNoteService extends BaseService {
     constructor() {
         super(ClinicalNote)
     }
@@ -12,7 +9,7 @@ class ClinicalNoteService extends BaseAssociatedService {
 
 export const clinicalNoteService = new ClinicalNoteService()
 
-class ClinicalNoteController extends BaseAssociatedController {
+class ClinicalNoteController extends BaseController {
     constructor() {
         super(clinicalNoteService)
     }

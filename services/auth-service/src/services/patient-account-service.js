@@ -1,17 +1,18 @@
-import amqp from 'amqplib';
-import { User, PatientToken } from '../models/index.js';
-import { publishEvent } from '@mualdoo/shared';
+import amqp from 'amqplib'
+import { User, PatientToken } from '../models/index.js'
+import { publishEvent } from '@mualdoo/shared'
 
-const createPatientAccount = async(data) => {
-    const { email, name, lastName } = data;
+const createPatientAccount = async (data) => {
+    const { id, email, name, lastName } = data
     const user = await User.create({
+        id,
         email,
         name,
         lastName,
-        role: 'patient'
-    });
+        role: 'patient',
+    })
 
-    const patientToken = await PatientToken.create({ patientId: user.id });
+    const patientToken = await PatientToken.create({ patientId: user.id })
 
     await publishEvent(
         amqp,
@@ -20,9 +21,9 @@ const createPatientAccount = async(data) => {
         {
             email: user.email,
             fullName: user.getFullName(),
-            token: patientToken.activationToken
+            token: patientToken.activationToken,
         }
-    );
-};
+    )
+}
 
-export default createPatientAccount;
+export default createPatientAccount

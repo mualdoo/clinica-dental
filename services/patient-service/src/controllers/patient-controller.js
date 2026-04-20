@@ -1,28 +1,46 @@
 import { Patient } from '../models/index.js'
-import { BaseService, BaseController } from './base/base-controller.js'
 import { ok, catchAsync, publishEvent } from '@mualdoo/shared'
 import amqp from 'amqplib'
 
-class PatientService extends BaseService {
-    constructor() {
-        super(Patient)
+class PatientService {
+    constructor(model) {
+        this.model = model
     }
 
-    _verifyOwnership(headereUser, patient) {
-        if (headereUser.role !== 'patient') return
+    _verifyOwnership(headerUser, patient) {
+        if (headerUser.role !== 'patient') return
 
         const valid = patient.verifyOwnership(
-            headereUser.activePatientId,
-            headereUser.authUserId
+            headerUser.activePatientId,
+            headerUser.authUserId
         )
 
         if (!valid) throw new AppError('Permission denied', 403)
     }
 
-    async findAll() {
-        return this.model.findAll({
-            attributes: ['id', 'name', 'lastName', 'email', 'phone'],
+    async findAll({ page, limit, filter = {} } = {}) {
+        const offset = (page - 1) * limit
+        const result = await this.model.findAndCountAll({
+            order: [['createdAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            attributes: [
+                'id',
+                'authUserId',
+                'name',
+                'lastName',
+                'email',
+                'phone',
+            ],
+            where: filter,
         })
+
+        return {
+            data: result.rows,
+            total: result.count,
+            pate: parseInt(page),
+            totalPages: Math.ceil(result.count / limit),
+        }
     }
 
     async findById(user, id) {
@@ -37,6 +55,20 @@ class PatientService extends BaseService {
     async create(user, data) {
         if (user.role === 'patient') {
             data.authUserId = user.authUserId
+        } else {
+            const id = crypto.randomUUID()
+            data.authUserId = id
+            await publishEvent(
+                amqp,
+                'patient_created_exchange',
+                process.env.RABBITMQ_URL,
+                {
+                    id,
+                    email: data.email,
+                    name: data.name,
+                    lastName: data.lastName,
+                }
+            )
         }
 
         return this.model.create(data)
@@ -51,17 +83,23 @@ class PatientService extends BaseService {
         return instance.update(data)
     }
 
+    async remove(id) {
+        const instance = await this.model.findByPk(id)
+        if (!instance) throw new AppError('Item not found', 404)
+        await instance.destroy()
+    }
+
     async verifyPatient(where) {
         const patient = await this.model.findOne({ where })
         return !!patient
     }
 }
 
-export const patientService = new PatientService()
+export const patientService = new PatientService(Patient)
 
-class PatientController extends BaseController {
-    constructor() {
-        super(patientService)
+class PatientController {
+    constructor(service) {
+        this.service = service
     }
 
     _getUserInHeaders(req) {
@@ -71,6 +109,13 @@ class PatientController extends BaseController {
         user.role = req.headers['x-user-role']
         return user
     }
+
+    findAll = catchAsync(async (req, res) => {
+        const { page = 1, limit = 10 } = req.query
+
+        const response = await this.service.findAll({ page, limit })
+        return ok(res, response)
+    })
 
     findById = catchAsync(async (req, res) => {
         const user = this._getUserInHeaders(req)
@@ -84,17 +129,6 @@ class PatientController extends BaseController {
 
         const patient = await this.service.create(user, req.body)
 
-        await publishEvent(
-            amqp,
-            'patient_created_exchange',
-            process.env.RABBITMQ_URL,
-            {
-                email: patient.email,
-                name: patient.name,
-                lastName: patient.lastName,
-            }
-        )
-
         return ok(res, patient, 201)
     })
 
@@ -107,6 +141,11 @@ class PatientController extends BaseController {
             req.body
         )
         return ok(res, response)
+    })
+
+    remove = catchAsync(async (req, res) => {
+        await this.service.remove(req.params.id)
+        return ok(res, 'Item removed')
     })
 
     verifyPatient = catchAsync(async (req, res) => {
@@ -129,4 +168,4 @@ class PatientController extends BaseController {
     })
 }
 
-export const patientController = new PatientController()
+export const patientController = new PatientController(patientService)

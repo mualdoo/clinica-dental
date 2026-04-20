@@ -147,7 +147,7 @@ class AppointmentController extends BaseController {
         super(appointmentService)
     }
 
-    _getHeaders(req) {
+    _getUserInHeaders(req) {
         const user = {}
         user.authUserId = req.headers['x-user-id']
         user.activePatientId = req.headers['x-active-patient-id']
@@ -158,7 +158,7 @@ class AppointmentController extends BaseController {
     findAll = catchAsync(async (req, res) => {
         const { page = 1, limit = 10 } = req.query
         const filter = buildAppointmentFilter(req.query)
-        const user = this._getHeaders(req)
+        const user = this._getUserInHeaders(req)
 
         const response = await this.service.findAll(user, {
             page,
@@ -169,7 +169,7 @@ class AppointmentController extends BaseController {
     })
 
     findById = catchAsync(async (req, res) => {
-        const user = this._getHeaders(req)
+        const user = this._getUserInHeaders(req)
 
         const response = await this.service.findById(user, req.params.id)
         return ok(res, response)
@@ -178,7 +178,7 @@ class AppointmentController extends BaseController {
     create = catchAsync(async (req, res) => {
         const { patientId, dentistId } = req.body
 
-        const user = this._getHeaders(req)
+        const user = this._getUserInHeaders(req)
 
         const appointment = await this.service.create(user, req.body)
 
@@ -197,7 +197,7 @@ class AppointmentController extends BaseController {
     })
 
     update = catchAsync(async (req, res) => {
-        const user = this._getHeaders(req)
+        const user = this._getUserInHeaders(req)
 
         const appointment = await this.service.update(
             user,
@@ -208,7 +208,7 @@ class AppointmentController extends BaseController {
     })
 
     remove = catchAsync(async (req, res) => {
-        const user = this._getHeaders(req)
+        const user = this._getUserInHeaders(req)
 
         await this.service.remove(user, req.params.id)
         return ok(res, 'Item removed')

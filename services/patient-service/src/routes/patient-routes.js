@@ -37,33 +37,130 @@ router.delete(
 )
 
 // Health alerts
-router.get('/:id/alert', healthAlertController.findAll)
-router.get('/:id/alert/:itemId', healthAlertController.findById)
-router.post('/:id/alert', healthAlertController.create)
-router.patch('/:id/alert/:itemId', healthAlertController.update)
-router.delete('/:id/alert/:itemId', healthAlertController.remove)
+router.post(
+    '/:id/alert',
+    authorize(['admin', 'dentist']),
+    healthAlertController.create
+)
+
+router.get(
+    '/alert',
+    authorize(['admin', 'dentist']),
+    healthAlertController.findAll
+)
+router.get(
+    '/alert/:id',
+    authorize(['admin', 'dentist']),
+    healthAlertController.findById
+)
+router.patch(
+    '/alert/:id',
+    authorize(['admin', 'dentist']),
+    healthAlertController.update
+)
+router.delete(
+    '/alert/:id',
+    authorize(['admin', 'dentist']),
+    healthAlertController.remove
+)
 
 // Odontogram
-router.get('/:id/tooth', toothController.findAll)
-router.get('/:id/tooth/:itemId', toothController.findById)
-router.get('/:id/tooth/number/:toothNumber', toothController.findByNumber)
-router.post('/:id/tooth', toothController.create)
-router.patch('/:id/tooth/:itemId', toothController.update)
-router.delete('/:id/tooth/:itemId', toothController.remove)
+router.post(
+    '/:id/tooth',
+    authorize(['admin', 'dentist']),
+    toothController.create
+)
 
-// Clinical notes
-router.get('/:id/note', clinicalNoteController.findAll)
-router.get('/:id/note/:itemId', clinicalNoteController.findById)
-router.post('/:id/note', clinicalNoteController.create)
-router.patch('/:id/note/:itemId', clinicalNoteController.update)
-router.delete('/:id/note/:itemId', clinicalNoteController.remove)
+router.get('/tooth', authorize(['admin', 'dentist']), toothController.findAll)
+router.get(
+    '/tooth/:id',
+    authorize(['admin', 'dentist']),
+    toothController.findById
+)
+router.patch(
+    '/tooth/:id',
+    authorize(['admin', 'dentist']),
+    toothController.update
+)
+router.delete(
+    '/tooth/:id',
+    authorize(['admin', 'dentist']),
+    toothController.remove
+)
 
-// Files
-router.get('/:id/file', patientFileController.findAll)
-router.get('/:id/file/:itemId', patientFileController.findById)
-router.post('/:id/file', patientFileController.create)
-router.patch('/:id/file/:itemId', patientFileController.update)
-router.delete('/:id/file/:itemId', patientFileController.remove)
+// // Clinical notes
+router.post(
+    '/:id/note',
+    authorize(['admin', 'dentist']),
+    clinicalNoteController.create
+)
+
+router.get(
+    '/note',
+    authorize(['admin', 'dentist']),
+    clinicalNoteController.findAll
+)
+router.get(
+    '/note/:id',
+    authorize(['admin', 'dentist']),
+    clinicalNoteController.findById
+)
+router.patch(
+    '/note/:id',
+    authorize(['admin', 'dentist']),
+    clinicalNoteController.update
+)
+router.delete(
+    '/note/:id',
+    authorize(['admin', 'dentist']),
+    clinicalNoteController.remove
+)
+
+// // Files
+router.post(
+    '/:id/file',
+    authorize(['admin', 'dentist']),
+    patientFileController.create
+)
+
+router.get(
+    '/file',
+    authorize(['admin', 'dentist']),
+    patientFileController.findAll
+)
+router.get(
+    '/file/:id',
+    authorize(['admin', 'dentist']),
+    patientFileController.findById
+)
+router.patch(
+    '/file/:id',
+    authorize(['admin', 'dentist']),
+    patientFileController.update
+)
+router.delete(
+    '/file/:id',
+    authorize(['admin', 'dentist']),
+    patientFileController.remove
+)
+
+// Patient portal
+router.get(
+    '/:id/alert',
+    authorize(['patient']),
+    healthAlertController.findByPatient
+)
+router.get('/:id/tooth', authorize(['patient']), toothController.findByPatient)
+router.get(
+    '/:id/note',
+    authorize(['patient']),
+    clinicalNoteController.findByPatient
+)
+router.get(
+    '/:id/file',
+    authorize(['patient']),
+    patientFileController.findByPatient
+)
 
 // Internal
 router.get(

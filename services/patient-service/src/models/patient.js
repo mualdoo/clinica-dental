@@ -17,6 +17,11 @@ Patient.init(
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
         },
+        authUserId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
+        },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -38,10 +43,6 @@ Patient.init(
         gender: {
             type: DataTypes.ENUM('M', 'F', 'O'),
             defaultValue: 'O',
-        },
-        authUserId: {
-            type: DataTypes.UUID,
-            allowNull: false,
         },
         phone: DataTypes.STRING,
         address: DataTypes.STRING,

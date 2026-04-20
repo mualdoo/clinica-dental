@@ -1,10 +1,7 @@
 import { PatientFile } from '../models/index.js'
-import {
-    BaseAssociatedService,
-    BaseAssociatedController,
-} from './base/base-associated-controler.js'
+import { BaseService, BaseController } from './base/base-controler.js'
 
-class PatientFileService extends BaseAssociatedService {
+class PatientFileService extends BaseService {
     constructor() {
         super(PatientFile)
     }
@@ -12,7 +9,7 @@ class PatientFileService extends BaseAssociatedService {
 
 export const patientFileService = new PatientFileService()
 
-class PatientFileController extends BaseAssociatedController {
+class PatientFileController extends BaseController {
     constructor() {
         super(patientFileService)
     }
