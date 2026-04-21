@@ -7,7 +7,12 @@ import { verifyInternalKey } from '../middleware/internal.js'
 router.post('/register', controller.registerPatient)
 router.post('/login', controller.login)
 router.post('/refresh', controller.refreshToken)
-router.post('/logout', controller.logout)
+router.post(
+    '/logout',
+    authorize(['admin', 'receptionist', 'dentist', 'patient']),
+    controller.logout
+)
+
 router.patch('/verify-patient-account', controller.verifyPatientAccount)
 
 router.post(
