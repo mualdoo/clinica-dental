@@ -81,7 +81,7 @@ export const login = catchAsync(async (req, res) => {
     return ok(res, dataResponse)
 })
 
-export const refreshToken = async (req, res) => {
+export const refreshToken = catchAsync(async (req, res) => {
     const cookieToken = req.cookies.refreshToken
 
     if (!cookieToken) {
@@ -102,10 +102,10 @@ export const refreshToken = async (req, res) => {
     setCookieToken(res, refreshToken)
 
     return ok(res, { accessToken })
-}
+})
 
-export const logout = async (req, res) => {
-    const cookeToken = req.cookies.refreshToken
+export const logout = catchAsync(async (req, res) => {
+    const cookieToken = req.cookies.refreshToken
 
     if (cookieToken) {
         await User.update(
@@ -120,7 +120,7 @@ export const logout = async (req, res) => {
     })
 
     return ok(res, 'Session closed')
-}
+})
 
 export const getInfo = catchAsync(async (req, res) => {
     const { id } = req.params
