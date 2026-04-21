@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 import { authService } from '@/lib/api/auth-service'
 import {
@@ -11,6 +10,7 @@ import {
 } from '@/lib/api/session-actions'
 import { useAuthStore } from '@/store/auth-store'
 import type { LoginPayload, RegisterPayload, UserRole } from '@/types/auth'
+import { toast } from 'sonner'
 
 function getRedirectPath(role: UserRole): string {
     return role === 'patient' ? '/portal' : '/agenda'
@@ -26,19 +26,19 @@ export function useAuth() {
         setIsLoading(true)
         try {
             const response = await authService.login(payload)
-            if (!response.success) {
-                toast.error('Credenciales inválidas')
-                return
-            }
             const { user, accessToken } = response.data
+
             setAuth(user, accessToken)
             await createSessionCookie(user)
-            toast.success('Bienvenido/a')
+
+            toast.success('Bienvenido/a', {
+                position: 'bottom-center',
+            })
             router.push(getRedirectPath(user.role))
-        } catch (err: unknown) {
-            toast.error(
-                err instanceof Error ? err.message : 'Error al iniciar sesión'
-            )
+        } catch (err: any) {
+            toast.error(err.message || 'Error al iniciar sesión', {
+                position: 'bottom-center',
+            })
         } finally {
             setIsLoading(false)
         }
@@ -48,19 +48,19 @@ export function useAuth() {
         setIsLoading(true)
         try {
             const response = await authService.register(payload)
-            if (!response.success) {
-                toast.error('No se pudo crear la cuenta')
-                return
-            }
             const { user, accessToken } = response.data
+
             setAuth(user, accessToken)
             await createSessionCookie(user)
-            toast.success('Cuenta creada exitosamente')
+
+            toast.success('Cuenta creada exitosamente', {
+                position: 'bottom-center',
+            })
             router.push(getRedirectPath(user.role))
-        } catch (err: unknown) {
-            toast.error(
-                err instanceof Error ? err.message : 'Error al registrarse'
-            )
+        } catch (err: any) {
+            toast.error(err.message || 'No se pudo crear la cuenta', {
+                position: 'bottom-center',
+            })
         } finally {
             setIsLoading(false)
         }
@@ -70,7 +70,6 @@ export function useAuth() {
         try {
             await authService.logout()
         } catch {
-            /* limpiar local de todas formas */
         } finally {
             clearAuth()
             await clearSessionCookie()

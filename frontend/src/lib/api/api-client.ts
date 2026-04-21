@@ -74,9 +74,10 @@ export async function apiClient<T = unknown>(
     if (!res.ok) {
         let message = `Error ${res.status}`
         try {
-            const body = await res.json()
-            message = body?.message ?? message
+            const data = await res.json()
+            message = data?.error ?? message
         } catch {}
+
         throw new ApiError(res.status, message)
     }
 
