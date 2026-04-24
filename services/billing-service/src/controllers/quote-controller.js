@@ -32,7 +32,7 @@ class QuoteService extends BaseService {
         return {
             data: result.rows,
             total: result.count,
-            pate: parseInt(page),
+            page: parseInt(page),
             totalPages: Math.ceil(result.count / limit),
         }
     }

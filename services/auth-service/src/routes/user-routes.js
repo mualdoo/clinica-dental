@@ -21,6 +21,12 @@ router.post(
     controller.registerUser
 )
 
+router.get(
+    '/dentist/search',
+    authorize(['admin', 'receptionist']),
+    controller.findDentistByKey
+)
+
 // Only accessed by agenda-service
 router.get('/user-info/:id', verifyInternalKey, controller.getInfo)
 

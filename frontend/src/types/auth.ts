@@ -4,6 +4,8 @@ export interface User {
     id: string
     email: string
     role: UserRole
+    name?: string
+    lastName?: string
 }
 
 export interface AuthResponse {

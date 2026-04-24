@@ -16,6 +16,11 @@ router.get(
     patientController.findAll
 )
 router.get(
+    '/search',
+    authorize(['admin', 'receptionist', 'dentist']),
+    patientController.findAllByKey
+)
+router.get(
     '/:id',
     authorize(['admin', 'receptionist', 'dentist', 'patient']),
     patientController.findById

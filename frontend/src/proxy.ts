@@ -13,11 +13,16 @@ function getRedirectPath(role: UserRole): string {
     return role === 'patient' ? '/portal' : '/agenda'
 }
 
-function parseSession(cookie: string | undefined): { role: UserRole } | null {
-    if (!cookie) return null
+function parseAccessToken(
+    token: string | undefined
+): { id: string; role: UserRole } | null {
+    if (!token) return null
     try {
-        const decoded = Buffer.from(cookie, 'base64').toString('utf-8')
-        return JSON.parse(decoded)
+        const payload = token.split('.')[1]
+        const decoded = JSON.parse(
+            Buffer.from(payload, 'base64url').toString('utf-8')
+        )
+        return { id: decoded.id, role: decoded.role }
     } catch {
         return null
     }
@@ -27,7 +32,7 @@ function matchesRoute(pathname: string, routePrefix: string): boolean {
     return pathname === routePrefix || pathname.startsWith(`${routePrefix}/`)
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl
 
     if (
@@ -38,8 +43,9 @@ export function middleware(req: NextRequest) {
         return NextResponse.next()
     }
 
-    const sessionCookie = req.cookies.get('session')?.value
-    const session = parseSession(sessionCookie)
+    const sessionCookie = req.cookies.get('accessToken')?.value
+    const session = parseAccessToken(sessionCookie)
+    console.log(session)
 
     if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
         if (session) {

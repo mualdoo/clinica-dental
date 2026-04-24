@@ -5,8 +5,21 @@ export class BaseService {
         this.model = model
     }
 
-    async findAll() {
-        return this.model.findAll()
+    async findAll({ page, limit, filter = {} } = {}) {
+        const offset = (page - 1) * limit
+        const result = await this.model.findAndCountAll({
+            order: [['createdAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            where: filter,
+        })
+
+        return {
+            data: result.rows,
+            total: result.count,
+            page: parseInt(page),
+            totalPages: Math.ceil(result.count / limit),
+        }
     }
 
     async findById(id) {
@@ -38,7 +51,9 @@ export class BaseController {
     }
 
     findAll = catchAsync(async (req, res) => {
-        const response = await this.service.findAll()
+        const { page = 1, limit = 10 } = req.query
+
+        const response = await this.service.findAll({ page, limit })
         return ok(res, response)
     })
 

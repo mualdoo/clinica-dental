@@ -4,11 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { authService } from '@/lib/api/auth-service'
-import {
-    createSessionCookie,
-    clearSessionCookie,
-} from '@/lib/api/session-actions'
 import { useAuthStore } from '@/store/auth-store'
+import { useQuery } from '@tanstack/react-query'
 import type { LoginPayload, RegisterPayload, UserRole } from '@/types/auth'
 import { toast } from 'sonner'
 
@@ -29,16 +26,11 @@ export function useAuth() {
             const { user, accessToken } = response.data
 
             setAuth(user, accessToken)
-            await createSessionCookie(user)
 
-            toast.success('Bienvenido/a', {
-                position: 'bottom-center',
-            })
+            toast.success('Bienvenido/a')
             router.push(getRedirectPath(user.role))
         } catch (err: any) {
-            toast.error(err.message || 'Error al iniciar sesión', {
-                position: 'bottom-center',
-            })
+            toast.error(err.message || 'Error al iniciar sesión')
         } finally {
             setIsLoading(false)
         }
@@ -51,16 +43,11 @@ export function useAuth() {
             const { user, accessToken } = response.data
 
             setAuth(user, accessToken)
-            await createSessionCookie(user)
 
-            toast.success('Cuenta creada exitosamente', {
-                position: 'bottom-center',
-            })
+            toast.success('Cuenta creada exitosamente')
             router.push(getRedirectPath(user.role))
         } catch (err: any) {
-            toast.error(err.message || 'No se pudo crear la cuenta', {
-                position: 'bottom-center',
-            })
+            toast.error(err.message || 'No se pudo crear la cuenta')
         } finally {
             setIsLoading(false)
         }
@@ -72,7 +59,6 @@ export function useAuth() {
         } catch {
         } finally {
             clearAuth()
-            await clearSessionCookie()
             router.push('/login')
         }
     }
@@ -86,4 +72,13 @@ export function useAuth() {
         register,
         logout,
     }
+}
+
+export function useSearchDentists(query: string) {
+    return useQuery({
+        queryKey: ['patients', 'search', query],
+        queryFn: () => authService.search(query),
+        enabled: query.trim().length >= 2, // no busca con menos de 2 caracteres
+        staleTime: 10 * 1000, // caché de 10s para no spamear al backend
+    })
 }

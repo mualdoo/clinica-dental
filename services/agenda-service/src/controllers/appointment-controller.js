@@ -27,8 +27,11 @@ const buildAppointmentFilter = (query) => {
 
 const validateDentist = async (id) => {
     const dentist = await fetchUser(id)
-    if (!dentist || dentist.role !== 'dentist')
+    if (!dentist || dentist.role !== 'dentist') {
+        console.log('app error, dentist not found')
+
         throw new AppError('Dentist not found')
+    }
     return dentist
 }
 
@@ -187,8 +190,8 @@ class AppointmentController extends BaseController {
             'appointment_created_exchange',
             process.env.RABBITMQ_URL,
             {
-                email: patient.email,
-                fullName: patient.fullName,
+                email: user.email,
+                fullName: user.fullName,
                 appointmentDate: appointment.startTime,
             }
         )

@@ -1,5 +1,11 @@
+import { PaginatedResponse } from '@/types/backend-response'
 import { apiClient } from './api-client'
-import type { AuthResponse, LoginPayload, RegisterPayload } from '@/types/auth'
+import type {
+    AuthResponse,
+    LoginPayload,
+    RegisterPayload,
+    User,
+} from '@/types/auth'
 
 export const authService = {
     login: (payload: LoginPayload) =>
@@ -19,4 +25,8 @@ export const authService = {
         apiClient<void>('/auth/logout', {
             method: 'POST',
         }),
+    search: (query: string) =>
+        apiClient<PaginatedResponse<User>>(
+            `/auth/dentist/search?key=${encodeURIComponent(query)}`
+        ),
 }

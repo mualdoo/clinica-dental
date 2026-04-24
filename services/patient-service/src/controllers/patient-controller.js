@@ -1,6 +1,7 @@
 import { Patient } from '../models/index.js'
 import { ok, catchAsync, publishEvent } from '@mualdoo/shared'
 import amqp from 'amqplib'
+import { Op } from 'sequelize'
 
 class PatientService {
     constructor(model) {
@@ -43,7 +44,42 @@ class PatientService {
         return {
             data: result.rows,
             total: result.count,
-            pate: parseInt(page),
+            page: parseInt(page),
+            totalPages: Math.ceil(result.count / limit),
+        }
+    }
+
+    async findAllByKey({ key, page, limit } = {}) {
+        const term = `%${key.trim()}%`
+
+        const result = await Patient.findAndCountAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.iLike]: term } },
+                    { lastName: { [Op.iLike]: term } },
+                    { email: { [Op.iLike]: term } },
+                    { phone: { [Op.like]: term } },
+                ],
+            },
+            limit,
+            order: [
+                ['lastName', 'ASC'],
+                ['name', 'ASC'],
+            ],
+            attributes: [
+                'id',
+                'authUserId',
+                'name',
+                'lastName',
+                'email',
+                'phone',
+            ],
+        })
+
+        return {
+            data: result.rows,
+            total: result.count,
+            page: parseInt(page),
             totalPages: Math.ceil(result.count / limit),
         }
     }
@@ -120,6 +156,13 @@ class PatientController {
         const user = this._getUserInHeaders(req)
 
         const response = await this.service.findAll(user, { page, limit })
+        return ok(res, response)
+    })
+
+    findAllByKey = catchAsync(async (req, res) => {
+        const { page = 1, limit = 10, key } = req.query
+
+        const response = await this.service.findAllByKey({ key, page, limit })
         return ok(res, response)
     })
 

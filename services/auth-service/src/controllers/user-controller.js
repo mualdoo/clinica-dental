@@ -1,6 +1,7 @@
 import { User, PatientToken } from '../models/index.js'
 import { generateToken } from './user-service.js'
 import { ok, fail, catchAsync } from '@mualdoo/shared'
+import { Op } from 'sequelize'
 
 export const verifyPatientAccount = catchAsync(async (req, res) => {
     const { token, email, password } = req.body
@@ -16,12 +17,21 @@ export const verifyPatientAccount = catchAsync(async (req, res) => {
     return ok(res, 'Account verified')
 })
 
-const setCookieToken = (res, refreshToken, days = 7) => {
+const setRefreshTokenInCookie = (res, refreshToken, days = 7) => {
     const daysInMIllis = days * 24 * 60 * 60 * 1000
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         sameSite: 'Strict',
         maxAge: daysInMIllis,
+    })
+}
+
+const setAccessTokenInCookie = (res, accessToken, minutes = 30) => {
+    const minutesInMillis = minutes * 60 * 1000
+    res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        sameSite: 'Strict',
+        maxAge: minutesInMillis,
     })
 }
 
@@ -31,7 +41,8 @@ const register = async (res, data) => {
     const { accessToken, refreshToken } = generateToken(user)
     await user.update({ refreshToken })
 
-    setCookieToken(res, refreshToken)
+    setRefreshTokenInCookie(res, refreshToken)
+    setAccessTokenInCookie(res, accessToken)
 
     return {
         user: {
@@ -68,7 +79,8 @@ export const login = catchAsync(async (req, res) => {
     const { accessToken, refreshToken } = generateToken(user)
     await user.update({ refreshToken })
 
-    setCookieToken(res, refreshToken)
+    setRefreshTokenInCookie(res, refreshToken)
+    setAccessTokenInCookie(res, accessToken)
 
     const dataResponse = {
         user: {
@@ -99,7 +111,8 @@ export const refreshToken = catchAsync(async (req, res) => {
 
     await user.update({ refreshToken })
 
-    setCookieToken(res, refreshToken)
+    setRefreshTokenInCookie(res, refreshToken)
+    setAccessTokenInCookie(res, accessToken)
 
     return ok(res, { accessToken })
 })
@@ -124,14 +137,48 @@ export const logout = catchAsync(async (req, res) => {
 
 export const getInfo = catchAsync(async (req, res) => {
     const { id } = req.params
+    console.log(`'holaa, al inicio del getInfo', ${id}`)
 
     const user = await User.findByPk(id)
-    if (!user) return fail(res, 'Patient not found')
+    if (!user) return fail(res, 'User not found')
+    console.log('hola, despues del acceso a db')
 
     const dataResponse = {
         email: user.email,
         fullName: user.getFullName(),
         role: user.role,
+    }
+    console.log(dataResponse)
+
+    return ok(res, dataResponse)
+})
+
+export const findDentistByKey = catchAsync(async (req, res) => {
+    const { page = 1, limit = 10, key } = req.query
+    const term = `%${key.trim()}%`
+
+    const result = await User.findAndCountAll({
+        where: {
+            [Op.or]: [
+                { name: { [Op.iLike]: term } },
+                { lastName: { [Op.iLike]: term } },
+                { email: { [Op.iLike]: term } },
+            ],
+            role: 'dentist',
+        },
+        limit,
+        order: [
+            ['lastName', 'ASC'],
+            ['name', 'ASC'],
+        ],
+        attributes: ['id', 'name', 'lastName', 'email'],
+    })
+
+    const dataResponse = {
+        data: result.rows,
+        total: result.count,
+        page: parseInt(page),
+        totalPages: Math.ceil(result.count / limit),
     }
 
     return ok(res, dataResponse)
