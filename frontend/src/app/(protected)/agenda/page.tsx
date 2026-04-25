@@ -170,25 +170,23 @@ function AppointmentCard({ appt }: { appt: Appointment }) {
                 <div className="flex items-start justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                         <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">
-                            Paciente #{appt.patientId.slice(-6)}
-                        </span>
+                        <span className="truncate">{appt.patientName}</span>
                     </div>
                     <StatusBadge status={appt.status} />
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatTime(appt.startTime)} –{' '}
+                        {formatTime(appt.startTime)} -{' '}
                         {formatTime(appt.endTime)}
                     </span>
                     <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        Cubículo #{appt.cubicleId.slice(-4)}
+                        {appt.Cubicle.name} - {appt.Cubicle.number}
                     </span>
                     <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
-                        Dr. #{appt.dentistId.slice(-4)}
+                        Dr. {appt.dentistName}
                     </span>
                 </div>
             </div>

@@ -169,12 +169,12 @@ router.get(
 
 // Internal
 router.get(
-    'internal/verify-patient',
+    '/internal/verify-patient',
     verifyInternalKey,
     patientController.verifyPatient
 )
 router.get(
-    'internal/patient-exists',
+    '/internal/patient-exists',
     verifyInternalKey,
     patientController.patientExists
 )

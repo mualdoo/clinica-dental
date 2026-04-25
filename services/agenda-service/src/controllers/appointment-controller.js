@@ -3,7 +3,7 @@ import { ok, catchAsync, AppError, publishEvent } from '@mualdoo/shared'
 import { Appointment, Cubicle } from '../models/index.js'
 import { BaseService, BaseController } from './base/base-controller.js'
 import fetchUser from '../services/auth-service.js'
-import verifyPatient from '../services/patient-service.js'
+import { verifyPatient, patientExists } from '../services/patient-service.js'
 import amqp from 'amqplib'
 
 const buildAppointmentFilter = (query) => {
@@ -77,6 +77,12 @@ class AppointmentService extends BaseService {
         if (!valid) throw new AppError('Permission denied', 403)
     }
 
+    async _patientExists(patientId) {
+        const patient = await patientExists(patientId)
+        if (!patient) throw new AppError('Patient not found', 404)
+        return patient
+    }
+
     async findAll(user, { page, limit, filter = {} } = {}) {
         const offset = (page - 1) * limit
 
@@ -89,6 +95,7 @@ class AppointmentService extends BaseService {
             limit: parseInt(limit),
             offset: parseInt(offset),
             where: filter,
+            include: Cubicle,
         })
 
         return {
@@ -115,8 +122,12 @@ class AppointmentService extends BaseService {
             data.patientId = user.activePatientId
         }
 
-        await validateDentist(data.dentistId)
+        const dentist = await validateDentist(data.dentistId)
+        const patient = await this._patientExists(data.patientId)
         await validateSchedule(data)
+
+        data.patientName = `${patient.name} ${patient.lastName}`
+        data.dentistName = `${dentist.name} ${dentist.lastName}`
 
         return this.model.create(data)
     }

@@ -144,7 +144,7 @@ class PatientService {
 
     async verifyPatient(where) {
         const patient = await this.model.findOne({ where })
-        return !!patient
+        return patient
     }
 }
 
@@ -217,15 +217,16 @@ class PatientController {
             authUserId,
         })
 
-        return ok(res, valid)
+        return ok(res, !!valid)
     })
 
     patientExists = catchAsync(async (req, res) => {
         const { patientId } = req.query
 
-        const exists = await this.service.verifyPatient({ patientId })
+        const patient = await this.service.verifyPatient({ id: patientId })
+        console.log('paciente????', patient.toJSON())
 
-        return ok(res, exists)
+        return ok(res, patient)
     })
 }
 

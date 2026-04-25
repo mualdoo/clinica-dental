@@ -15,7 +15,7 @@ Cubicle.init(
             allowNull: false,
         },
         number: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
             unique: true,
             allowNull: false,
         },
