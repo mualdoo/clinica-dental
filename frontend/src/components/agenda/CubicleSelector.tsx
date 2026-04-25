@@ -34,7 +34,7 @@ export function CubicleSelector({
             defaultValue={defaultValue}
             disabled={isLoading}
         >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
                 <div className="flex items-center gap-2">
                     {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

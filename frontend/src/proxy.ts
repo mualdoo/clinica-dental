@@ -45,7 +45,6 @@ export function proxy(req: NextRequest) {
 
     const sessionCookie = req.cookies.get('accessToken')?.value
     const session = parseAccessToken(sessionCookie)
-    console.log(session)
 
     if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
         if (session) {

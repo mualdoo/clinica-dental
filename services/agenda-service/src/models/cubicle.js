@@ -1,5 +1,5 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database.js'
 
 class Cubicle extends Model {}
 
@@ -8,18 +8,23 @@ Cubicle.init(
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            defaultValue: DataTypes.UUIDV4,
         },
         name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+        },
+        number: {
+            type: DataTypes.NUMBER,
+            unique: true,
+            allowNull: false,
         },
         isActive: {
             type: DataTypes.BOOLEAN,
-            defaultValue: true
-        }
+            defaultValue: true,
+        },
     },
     { sequelize }
-);
+)
 
-export default Cubicle;
+export default Cubicle

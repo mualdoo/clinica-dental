@@ -2,6 +2,7 @@ import { User, PatientToken } from '../models/index.js'
 import { generateToken } from './user-service.js'
 import { ok, fail, catchAsync } from '@mualdoo/shared'
 import { Op } from 'sequelize'
+import jwt from 'jsonwebtoken'
 
 export const verifyPatientAccount = catchAsync(async (req, res) => {
     const { token, email, password } = req.body
@@ -114,7 +115,16 @@ export const refreshToken = catchAsync(async (req, res) => {
     setRefreshTokenInCookie(res, refreshToken)
     setAccessTokenInCookie(res, accessToken)
 
-    return ok(res, { accessToken })
+    const dataResponse = {
+        user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+        },
+        accessToken,
+    }
+
+    return ok(res, dataResponse)
 })
 
 export const logout = catchAsync(async (req, res) => {
@@ -137,15 +147,14 @@ export const logout = catchAsync(async (req, res) => {
 
 export const getInfo = catchAsync(async (req, res) => {
     const { id } = req.params
-    console.log(`'holaa, al inicio del getInfo', ${id}`)
 
     const user = await User.findByPk(id)
     if (!user) return fail(res, 'User not found')
-    console.log('hola, despues del acceso a db')
 
     const dataResponse = {
         email: user.email,
-        fullName: user.getFullName(),
+        name: user.name,
+        lastName: user.lastName,
         role: user.role,
     }
     console.log(dataResponse)

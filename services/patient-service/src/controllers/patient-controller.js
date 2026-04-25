@@ -2,6 +2,7 @@ import { Patient } from '../models/index.js'
 import { ok, catchAsync, publishEvent } from '@mualdoo/shared'
 import amqp from 'amqplib'
 import { Op } from 'sequelize'
+import getUser from '../services/auth-service.js'
 
 class PatientService {
     constructor(model) {
@@ -17,6 +18,13 @@ class PatientService {
         )
 
         if (!valid) throw new AppError('Permission denied', 403)
+    }
+
+    async _verifyUserAccount(userId) {
+        const user = await getUser(userId)
+        if (!user || user.role !== 'patient')
+            throw new AppError('Permission denied', 403)
+        return user
     }
 
     async findAll(user, { page, limit, filter = {} } = {}) {
@@ -95,7 +103,11 @@ class PatientService {
 
     async create(user, data) {
         if (user.role === 'patient') {
-            data.authUserId = user.authUserId
+            const patientUser = this._verifyUserAccount(user.authUserId)
+            data.authUserId = patientUser.id
+            data.email = patientUser.email
+            data.name = patientUser.name
+            data.lastName = patientUser.lastName
         } else {
             const id = crypto.randomUUID()
             data.authUserId = id

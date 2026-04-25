@@ -85,7 +85,7 @@ class AppointmentService extends BaseService {
         }
 
         const result = await this.model.findAndCountAll({
-            order: [['createdAt', 'DESC']],
+            order: [['startTime', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
             where: filter,

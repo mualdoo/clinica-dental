@@ -27,7 +27,7 @@ router.get(
     controller.findDentistByKey
 )
 
-// Only accessed by agenda-service
+// Only accessed by agenda/patient-service
 router.get('/user-info/:id', verifyInternalKey, controller.getInfo)
 
 export default router

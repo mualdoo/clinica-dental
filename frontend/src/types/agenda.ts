@@ -30,6 +30,7 @@ export interface AppointmentParams {
     status?: AppointmentStatus
     page?: number
     limit?: number
+    enabled?: boolean
 }
 
 export interface CubicleParams {

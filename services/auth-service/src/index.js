@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 
 import routes from './routes/user-routes.js'
 import { syncDatabase } from './models/index.js'
@@ -13,6 +14,7 @@ syncDatabase().then(() => {
 })
 startConsumers()
 
+app.use(cookieParser())
 app.use(express.json())
 
 app.use('/', routes)

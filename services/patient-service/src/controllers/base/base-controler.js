@@ -42,8 +42,8 @@ export class BaseService {
         return instance
     }
 
-    async create(data) {
-        return this.model.create(data)
+    async create(data, createdBy) {
+        return this.model.create({ ...data, createdBy })
     }
 
     async update(id, data) {
@@ -99,10 +99,14 @@ export class BaseController {
 
     create = catchAsync(async (req, res) => {
         const { id } = req.params
-        const response = await this.service.create({
-            ...req.body,
-            patientId: id,
-        })
+        const userId = req.headers['x-user-id']
+        const response = await this.service.create(
+            {
+                ...req.body,
+                patientId: id,
+            },
+            userId
+        )
         return ok(res, response, 201)
     })
 

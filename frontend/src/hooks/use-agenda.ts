@@ -61,6 +61,7 @@ export function useInfiniteAppointments(
 
         // Mantenemos la opción para evitar parpadeos al cambiar filtros
         placeholderData: keepPreviousData,
+        enabled: params.enabled ?? false,
     })
 }
 
