@@ -59,6 +59,14 @@ export function usePatients(params: Omit<PaginationParams, 'page'> = {}) {
     })
 }
 
+export function usePatient(id: string) {
+    return useQuery({
+        queryKey: patientKeys.one(id),
+        queryFn: () => patientService.getById(id),
+        enabled: !!id,
+    })
+}
+
 export function useSearchPatients(query: string) {
     return useQuery({
         queryKey: ['patients', 'search', query],

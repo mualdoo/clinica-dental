@@ -152,18 +152,22 @@ router.delete(
 // Patient portal
 router.get(
     '/:id/alert',
-    authorize(['patient']),
+    authorize(['admin', 'dentist', 'patient']),
     healthAlertController.findByPatient
 )
-router.get('/:id/tooth', authorize(['patient']), toothController.findByPatient)
+router.get(
+    '/:id/tooth',
+    authorize(['admin', 'dentist', 'patient']),
+    toothController.findByPatient
+)
 router.get(
     '/:id/note',
-    authorize(['patient']),
+    authorize(['admin', 'dentist', 'patient']),
     clinicalNoteController.findByPatient
 )
 router.get(
     '/:id/file',
-    authorize(['patient']),
+    authorize(['admin', 'dentist', 'patient']),
     patientFileController.findByPatient
 )
 

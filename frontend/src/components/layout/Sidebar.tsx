@@ -7,6 +7,7 @@ import { Menu, X, ChevronLeft, ChevronRight, LogOut, Sun } from 'lucide-react'
 import { getNavItems } from '@/config/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '../theme-toggle'
 
 // ─── Tooltip simple para iconos colapsados ────────────────────────────────────
 function IconTooltip({
@@ -120,10 +121,7 @@ function DesktopSidebar() {
                         </button>
                     </IconTooltip>
                 ) : (
-                    <button className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                        <Sun className="h-4 w-4 shrink-0" />
-                        <span>Cambiar tema</span>
-                    </button>
+                    <ThemeToggle />
                 )}
 
                 {/* Cerrar sesión */}

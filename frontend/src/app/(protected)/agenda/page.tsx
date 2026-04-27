@@ -377,7 +377,7 @@ export default function AgendaPage() {
             ? new Date(
                   new Date(currentDate).setHours(23, 59, 59, 999)
               ).toISOString()
-            : addDays(weekStart, 6).toISOString()
+            : addDays(weekStart, 7).toISOString()
         : ''
 
     // 3. El Hook de la Query siempre se llama, pero se "pausa" con enabled
@@ -468,8 +468,8 @@ export default function AgendaPage() {
                     value={view}
                     onValueChange={(v) => setView(v as 'daily' | 'weekly')}
                 >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <TabsList className="w-fit" variant={'line'}>
+                    <div className="flex items-center justify-center gap-2">
+                        <TabsList>
                             <TabsTrigger value="daily" className="gap-1.5">
                                 <Calendar className="h-3.5 w-3.5" />
                                 Vista Diaria
@@ -479,30 +479,31 @@ export default function AgendaPage() {
                                 Vista Semanal
                             </TabsTrigger>
                         </TabsList>
-
-                        {/* Navegación de fecha */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => navigate(-1)}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                aria-label="Anterior"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </button>
-
-                            <span className="min-w-50 text-center text-sm font-medium text-foreground capitalize">
-                                {navLabel}
-                            </span>
-
-                            <button
-                                onClick={() => navigate(1)}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                aria-label="Siguiente"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
-                        </div>
                     </div>
+                    {/* Navegación de fecha */}
+                    <div className="flex items-center justify-center gap-2">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="Anterior"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+
+                        <span className="min-w-50 text-center text-sm font-medium text-foreground capitalize">
+                            {navLabel}
+                        </span>
+
+                        <button
+                            onClick={() => navigate(1)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="Siguiente"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                    {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    </div> */}
 
                     {/* ── Vista Diaria ── */}
                     <TabsContent value="daily" className="mt-4">

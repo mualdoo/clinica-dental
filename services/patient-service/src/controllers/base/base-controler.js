@@ -58,13 +58,14 @@ export class BaseService {
         await instance.destroy()
     }
 
-    async findByPatient(user, { page, limit, filter = {} } = {}) {
-        console.log('primera')
-        await this._verifyOwnership(user)
-        console.log('segunda')
+    async findByPatient(user, id = null, { page, limit, filter = {} } = {}) {
+        if (user.role === 'patient') {
+            await this._verifyOwnership(user)
+            filter.patientId = user.activePatientId
+        } else {
+            filter.patientId = id
+        }
 
-        filter.patientId = user.activePatientId
-        console.log('segunda')
         return this.findAll({ page, limit, filter })
     }
 }
@@ -77,10 +78,10 @@ export class BaseController {
     _getUserInHeaders(req) {
         const user = {}
         user.authUserId = req.headers['x-user-id']
-        user.activePatientId = req.headers['x-active-patient-id']
         user.role = req.headers['x-user-role']
 
-        console.log(user.activePatientId)
+        if (user.role === 'patient')
+            user.activePatientId = req.headers['x-active-patient-id']
 
         return user
     }
@@ -123,8 +124,12 @@ export class BaseController {
     findByPatient = catchAsync(async (req, res) => {
         const user = this._getUserInHeaders(req)
         const { page = 1, limit = 10 } = req.query
+        const { id = null } = req.params
 
-        const response = await this.service.findByPatient(user)
+        const response = await this.service.findByPatient(user, id, {
+            page,
+            limit,
+        })
         return ok(res, response)
     })
 }

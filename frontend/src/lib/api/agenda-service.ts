@@ -26,6 +26,7 @@ function toQueryString(params: Record<string, unknown>): string {
 export const appointmentService = {
     getAll: (params: AppointmentParams = {}) => {
         const qs = toQueryString({ page: 1, limit: 10, ...params })
+
         return apiClient<PaginatedResponse<Appointment>>(
             `/agenda/appointment${qs}`
         )

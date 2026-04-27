@@ -45,6 +45,8 @@ class PatientService {
                 'lastName',
                 'email',
                 'phone',
+                'gender',
+                'bloodType',
             ],
             where: filter,
         })
@@ -81,6 +83,8 @@ class PatientService {
                 'lastName',
                 'email',
                 'phone',
+                'gender',
+                'bloodType',
             ],
         })
 
@@ -224,7 +228,6 @@ class PatientController {
         const { patientId } = req.query
 
         const patient = await this.service.verifyPatient({ id: patientId })
-        console.log('paciente????', patient.toJSON())
 
         return ok(res, patient)
     })

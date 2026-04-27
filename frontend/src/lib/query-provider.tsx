@@ -11,6 +11,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
                 defaultOptions: {
                     queries: {
                         staleTime: 60 * 1000, // 1 min
+                        refetchOnWindowFocus: false,
                         retry: (failureCount, error: unknown) => {
                             // No reintentar si es un 401 o 403
                             if (
