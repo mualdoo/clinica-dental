@@ -136,11 +136,15 @@ export const logout = catchAsync(async (req, res) => {
             { where: { refreshToken: cookieToken } }
         )
     }
-
-    res.clearCookie('refreshToken', {
+    const cookieOptions = {
         httpOnly: true,
-        sameSite: 'Strict',
-    })
+        sameSite: 'lax',
+        path: '/',
+        expires: new Date(0), // Fecha en el pasado
+    }
+
+    res.cookie('accessToken', '', cookieOptions)
+    res.cookie('refreshToken', '', cookieOptions)
 
     return ok(res, 'Session closed')
 })

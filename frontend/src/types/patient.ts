@@ -78,7 +78,6 @@ export interface PaginationParams {
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 export interface CreatePatientDto {
-    authUserId: string
     email: string
     name: string
     lastName: string

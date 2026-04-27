@@ -1,5 +1,5 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database.js'
 
 class Payment extends Model {}
 
@@ -8,42 +8,53 @@ Payment.init(
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            defaultValue: DataTypes.UUIDV4,
         },
         amount: {
-            type: DataTypes.DECIMAL(10,2),
-            allowNull: false
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: false,
         },
         method: {
-            type: DataTypes.ENUM('cash', 'card_credit', 'card_debit', 'transfer', 'check'),
-            allowNull: false
+            type: DataTypes.ENUM(
+                'cash',
+                'card_credit',
+                'card_debit',
+                'transfer',
+                'check'
+            ),
+            allowNull: false,
         },
         reference: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
         },
         status: {
-            type: DataTypes.ENUM('pending', 'completed', 'voided', 'refunded'),
-            allowNull: false
-        }
+            type: DataTypes.ENUM(
+                'pending',
+                'completed',
+                'cancelled',
+                'refunded'
+            ),
+            allowNull: false,
+        },
     },
     {
         sequelize,
         hooks: {
             beforeUpdate: () => {
-                throw new Error('Payments cannot be changed');
+                throw new Error('Payments cannot be changed')
             },
             beforeDestroy: () => {
-                throw new Error('Payments cannot be changed');
+                throw new Error('Payments cannot be changed')
             },
         },
         validate: {
             isReferenceValid() {
                 if (this.method !== 'cash' && !this.reference) {
-                    throw new Error('Reference cannot be empty');
+                    throw new Error('Reference cannot be empty')
                 }
-            }
-        }
+            },
+        },
     }
-);
+)
 
-export default Payment;
+export default Payment
