@@ -9,7 +9,7 @@ router.post('/login', controller.login)
 router.post('/refresh', controller.refreshToken)
 router.post('/logout', controller.logout)
 
-router.patch('/verify-patient-account', controller.verifyPatientAccount)
+router.post('/verify-patient-account', controller.verifyPatientAccount)
 
 router.post(
     '/admin/register-user',
@@ -22,6 +22,8 @@ router.get(
     authorize(['admin', 'receptionist']),
     controller.findDentistByKey
 )
+
+router.get('/user', authorize(['admin', 'receptionist']), controller.getUsers)
 
 // Only accessed by agenda/patient-service
 router.get('/user-info/:id', verifyInternalKey, controller.getInfo)

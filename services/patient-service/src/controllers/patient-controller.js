@@ -38,16 +38,9 @@ class PatientService {
             order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            attributes: [
-                'id',
-                'authUserId',
-                'name',
-                'lastName',
-                'email',
-                'phone',
-                'gender',
-                'bloodType',
-            ],
+            attributes: {
+                exclude: ['address'],
+            },
             where: filter,
         })
 
@@ -107,11 +100,10 @@ class PatientService {
 
     async create(user, data) {
         if (user.role === 'patient') {
-            const patientUser = this._verifyUserAccount(user.authUserId)
+            const patientUser = await this._verifyUserAccount(user.authUserId)
+
             data.authUserId = patientUser.id
             data.email = patientUser.email
-            data.name = patientUser.name
-            data.lastName = patientUser.lastName
         } else {
             const id = crypto.randomUUID()
             data.authUserId = id

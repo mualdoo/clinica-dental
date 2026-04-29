@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { UserRole } from '@/types/auth'
 
-const PUBLIC_ROUTES = ['/login', '/register']
+const PUBLIC_ROUTES = ['/login', '/register', '/verificar-cuenta']
 
 const ROLE_ROUTES: Record<string, UserRole[]> = {
     '/agenda': ['dentist', 'admin', 'receptionist'],
@@ -75,6 +75,20 @@ export function proxy(req: NextRequest) {
                 return NextResponse.redirect(new URL(dest, req.url))
             }
             break
+        }
+    }
+
+    // Rutas del portal que requieren perfil seleccionado
+    if (
+        matchesRoute(pathname, '/portal') &&
+        !pathname.includes('seleccionar-perfil') &&
+        !pathname.includes('completar-perfil')
+    ) {
+        const activePatientId = req.cookies.get('activePatientId')?.value
+        if (!activePatientId) {
+            return NextResponse.redirect(
+                new URL('/portal/seleccionar-perfil', req.url)
+            )
         }
     }
 

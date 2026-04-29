@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { useAuthStore } from '@/store/auth-store'
 
 const GATEWAY = process.env.API_GATEWAY_URL
 
@@ -15,6 +16,9 @@ async function handler(req: NextRequest) {
     if (accessToken) {
         headers.set('Authorization', `Bearer ${accessToken}`)
     }
+
+    const activePatientId = cookieStore.get('activePatientId')?.value
+    if (activePatientId) headers.set('x-active-patient-id', activePatientId)
 
     headers.delete('host')
     headers.delete('connection')

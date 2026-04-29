@@ -9,8 +9,14 @@ import { useQuery } from '@tanstack/react-query'
 import type { LoginPayload, RegisterPayload, UserRole } from '@/types/auth'
 import { toast } from 'sonner'
 
-function getRedirectPath(role: UserRole): string {
-    return role === 'patient' ? '/portal' : '/agenda'
+function getLoginRedirect(role: UserRole): string {
+    if (role === 'patient') return '/portal/seleccionar-perfil'
+    return '/agenda'
+}
+
+function getRegisterRedirect(role: UserRole): string {
+    if (role === 'patient') return '/portal/completar-perfil'
+    return '/agenda'
 }
 
 export function useAuth() {
@@ -28,7 +34,7 @@ export function useAuth() {
             setAuth(user, accessToken)
 
             toast.success('Bienvenido/a')
-            router.push(getRedirectPath(user.role))
+            router.push(getLoginRedirect(user.role))
         } catch (err: any) {
             toast.error(err.message || 'Error al iniciar sesión')
         } finally {
@@ -45,7 +51,7 @@ export function useAuth() {
             setAuth(user, accessToken)
 
             toast.success('Cuenta creada exitosamente')
-            router.push(getRedirectPath(user.role))
+            router.push(getRegisterRedirect(user.role))
         } catch (err: any) {
             toast.error(err.message || 'No se pudo crear la cuenta')
         } finally {
@@ -59,6 +65,8 @@ export function useAuth() {
         } catch {
         } finally {
             clearAuth()
+            // Limpia el perfil activo
+            document.cookie = 'activePatientId=; path=/; max-age=0'
             router.push('/login')
         }
     }

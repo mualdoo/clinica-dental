@@ -4,8 +4,8 @@ export interface User {
     id: string
     email: string
     role: UserRole
-    name?: string
-    lastName?: string
+    name: string
+    lastName: string
 }
 
 export interface AuthResponse {
@@ -27,13 +27,16 @@ export interface RegisterPayload {
     password: string
     name: string
     lastName: string
+    role?: string
 }
 
 export interface AuthState {
     user: User | null
     accessToken: string | null
     isAuthenticated: boolean
+    activePatientId: string | null // ← nuevo
     setAuth: (user: User, token: string) => void
     clearAuth: () => void
     setAccessToken: (token: string) => void
+    setActivePatientId: (id: string | null) => void // ← nuevo
 }

@@ -29,4 +29,11 @@ export const authService = {
         apiClient<PaginatedResponse<User>>(
             `/auth/dentist/search?key=${encodeURIComponent(query)}`
         ),
+    listUsers: () => apiClient<PaginatedResponse<User>>('/auth/user'),
+    registerUser: (payload: RegisterPayload) =>
+        apiClient<AuthResponse>('/auth/admin/register-user', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            withAuth: true,
+        }),
 }
