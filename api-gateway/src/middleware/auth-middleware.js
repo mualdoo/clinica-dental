@@ -15,8 +15,6 @@ export const authenticateToken = (req, res, next) => {
 
         req.headers['x-user-id'] = decodedUser.id
         req.headers['x-user-role'] = decodedUser.role
-        if (decodedUser.activePatientId)
-            req.headers['x-active-patient-id'] = decodedUser.activePatientId
 
         next()
     })

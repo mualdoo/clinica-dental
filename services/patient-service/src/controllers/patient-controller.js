@@ -1,6 +1,8 @@
 import { Patient } from '../models/index.js'
 import { ok, catchAsync, publishEvent } from '@mualdoo/shared'
 import amqp from 'amqplib'
+import { Op } from 'sequelize'
+import getUser from '../services/auth-service.js'
 
 class PatientService {
     constructor(model) {
@@ -18,6 +20,13 @@ class PatientService {
         if (!valid) throw new AppError('Permission denied', 403)
     }
 
+    async _verifyUserAccount(userId) {
+        const user = await getUser(userId)
+        if (!user || user.role !== 'patient')
+            throw new AppError('Permission denied', 403)
+        return user
+    }
+
     async findAll(user, { page, limit, filter = {} } = {}) {
         const offset = (page - 1) * limit
 
@@ -29,6 +38,37 @@ class PatientService {
             order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
+            attributes: {
+                exclude: ['address'],
+            },
+            where: filter,
+        })
+
+        return {
+            data: result.rows,
+            total: result.count,
+            page: parseInt(page),
+            totalPages: Math.ceil(result.count / limit),
+        }
+    }
+
+    async findAllByKey({ key, page, limit } = {}) {
+        const term = `%${key.trim()}%`
+
+        const result = await Patient.findAndCountAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.iLike]: term } },
+                    { lastName: { [Op.iLike]: term } },
+                    { email: { [Op.iLike]: term } },
+                    { phone: { [Op.like]: term } },
+                ],
+            },
+            limit,
+            order: [
+                ['lastName', 'ASC'],
+                ['name', 'ASC'],
+            ],
             attributes: [
                 'id',
                 'authUserId',
@@ -36,14 +76,15 @@ class PatientService {
                 'lastName',
                 'email',
                 'phone',
+                'gender',
+                'bloodType',
             ],
-            where: filter,
         })
 
         return {
             data: result.rows,
             total: result.count,
-            pate: parseInt(page),
+            page: parseInt(page),
             totalPages: Math.ceil(result.count / limit),
         }
     }
@@ -59,7 +100,10 @@ class PatientService {
 
     async create(user, data) {
         if (user.role === 'patient') {
-            data.authUserId = user.authUserId
+            const patientUser = await this._verifyUserAccount(user.authUserId)
+
+            data.authUserId = patientUser.id
+            data.email = patientUser.email
         } else {
             const id = crypto.randomUUID()
             data.authUserId = id
@@ -96,7 +140,7 @@ class PatientService {
 
     async verifyPatient(where) {
         const patient = await this.model.findOne({ where })
-        return !!patient
+        return patient
     }
 }
 
@@ -120,6 +164,13 @@ class PatientController {
         const user = this._getUserInHeaders(req)
 
         const response = await this.service.findAll(user, { page, limit })
+        return ok(res, response)
+    })
+
+    findAllByKey = catchAsync(async (req, res) => {
+        const { page = 1, limit = 10, key } = req.query
+
+        const response = await this.service.findAllByKey({ key, page, limit })
         return ok(res, response)
     })
 
@@ -162,15 +213,15 @@ class PatientController {
             authUserId,
         })
 
-        return ok(res, valid)
+        return ok(res, !!valid)
     })
 
     patientExists = catchAsync(async (req, res) => {
         const { patientId } = req.query
 
-        const exists = await this.service.verifyPatient({ patientId })
+        const patient = await this.service.verifyPatient({ id: patientId })
 
-        return ok(res, exists)
+        return ok(res, patient)
     })
 }
 

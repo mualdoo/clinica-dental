@@ -1,9 +1,9 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database.js'
 
 class Appointment extends Model {
     isConfirmed() {
-        return this.reminderSentAt !== null;
+        return this.reminderSentAt !== null
     }
 }
 
@@ -12,41 +12,57 @@ Appointment.init(
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            defaultValue: DataTypes.UUIDV4,
         },
         patientId: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: false,
+        },
+        patientName: {
+            type: DataTypes.STRING,
+            allowNull: false,
         },
         dentistId: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: false,
+        },
+        dentistName: {
+            type: DataTypes.STRING,
+            allowNull: false,
         },
         startTime: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
         },
         endTime: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
         },
         status: {
-            type: DataTypes.ENUM('scheduled', 'completed', 'missed', 'cancelled'),
-            defaultValue: 'scheduled'
+            type: DataTypes.ENUM(
+                'scheduled',
+                'completed',
+                'missed',
+                'cancelled'
+            ),
+            defaultValue: 'scheduled',
         },
         reminderSentAt: {
             type: DataTypes.DATE,
-            defaultValue: null
-        }
+            defaultValue: null,
+        },
     },
     {
         sequelize,
         validate: {
             isTimeValid() {
-                if(this.startTime > this.endTime) throw new Error('Start time cannot be greater than end time');
-            }
-        }
+                if (this.startTime > this.endTime)
+                    throw new Error(
+                        'Start time cannot be greater than end time'
+                    )
+            },
+        },
     }
-);
+)
 
-export default Appointment;
+export default Appointment

@@ -47,28 +47,28 @@ services:
       - billing-service
       - notification-service
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     target: development
-  #   ports:
-  #     - '3000:3000'
-  #   env_file:
-  #     - ./frontend/.env
-  #   networks:
-  #     - dental-network
-  #   depends_on:
-  #     - api-gateway
-  #   restart: unless-stopped
-  #   develop:
-  #     watch:
-  #       - action: sync
-  #         path: ./frontend
-  #         target: /app
-  #         ignore:
-  #           - node_modules/
-  #       - action: rebuild
-  #         path: ./frontend/package.json
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./frontend/.env
+    networks:
+      - dental-network
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
 
   auth-service:
     build:

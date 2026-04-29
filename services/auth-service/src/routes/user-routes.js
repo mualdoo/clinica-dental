@@ -7,13 +7,9 @@ import { verifyInternalKey } from '../middleware/internal.js'
 router.post('/register', controller.registerPatient)
 router.post('/login', controller.login)
 router.post('/refresh', controller.refreshToken)
-router.post(
-    '/logout',
-    authorize(['admin', 'receptionist', 'dentist', 'patient']),
-    controller.logout
-)
+router.post('/logout', controller.logout)
 
-router.patch('/verify-patient-account', controller.verifyPatientAccount)
+router.post('/verify-patient-account', controller.verifyPatientAccount)
 
 router.post(
     '/admin/register-user',
@@ -21,7 +17,15 @@ router.post(
     controller.registerUser
 )
 
-// Only accessed by agenda-service
+router.get(
+    '/dentist/search',
+    authorize(['admin', 'receptionist']),
+    controller.findDentistByKey
+)
+
+router.get('/user', authorize(['admin', 'receptionist']), controller.getUsers)
+
+// Only accessed by agenda/patient-service
 router.get('/user-info/:id', verifyInternalKey, controller.getInfo)
 
 export default router

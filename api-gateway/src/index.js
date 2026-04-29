@@ -47,6 +47,26 @@ app.post(
     })
 )
 
+app.get(
+    '/auth/dentist/search',
+    authenticateToken,
+    getProxyMidleware('http://auth-service:3001', {
+        pathRewrite: {
+            '^/auth': '',
+        },
+    })
+)
+
+app.get(
+    '/auth/user',
+    authenticateToken,
+    getProxyMidleware('http://auth-service:3001', {
+        pathRewrite: {
+            '^/auth': '',
+        },
+    })
+)
+
 app.use(
     '/auth',
     createProxyMiddleware({

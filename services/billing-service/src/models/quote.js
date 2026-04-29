@@ -1,16 +1,16 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database.js'
 
 class Quote extends Model {
     isActive() {
-        return this.status !== 'draft';
+        return this.status !== 'draft'
     }
     isOverdue() {
-        const today = new Date();
-        return today > new Date(this.validUntil);
+        const today = new Date()
+        return today > new Date(this.validUntil)
     }
     isAmountValid(amount) {
-        return this.total - amount >= 0;
+        return this.total - amount >= 0
     }
 }
 
@@ -19,39 +19,48 @@ Quote.init(
         id: {
             primaryKey: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4
+            defaultValue: DataTypes.UUIDV4,
         },
         patientId: {
             type: DataTypes.UUID,
-            allowNull: false
+            allowNull: false,
         },
         notes: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
         },
         total: {
             type: DataTypes.FLOAT,
-            allowNull: true
+            defaultValue: 0.0,
         },
         status: {
-            type: DataTypes.ENUM('draft', 'pending', 'paid', 'cancelled'),
-            defaultValue: 'draft'
+            type: DataTypes.ENUM(
+                'draft',
+                'sent',
+                'accepted',
+                'rejected',
+                'expired',
+                'paid'
+            ),
+            defaultValue: 'draft',
         },
         validUntil: {
             type: DataTypes.DATE,
-            allowNull: true
-        }
+            allowNull: true,
+        },
     },
     {
         sequelize,
         hooks: {
             beforeUpdate: (quoteInstance) => {
-                if (this.isActive()) throw new Error('Active quotes cannot be changed');
+                if (quoteInstance.isActive())
+                    throw new Error('Active quotes cannot be changed')
             },
             beforeDestroy: (quoteInstance) => {
-                if (this.isActive()) throw new Error('Active quotes cannot be changed');
-            }
-        }
+                if (quoteInstance.isActive())
+                    throw new Error('Active quotes cannot be changed')
+            },
+        },
     }
-);
+)
 
-export default Quote;
+export default Quote

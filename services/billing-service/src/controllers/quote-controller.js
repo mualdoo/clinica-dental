@@ -32,7 +32,7 @@ class QuoteService extends BaseService {
         return {
             data: result.rows,
             total: result.count,
-            pate: parseInt(page),
+            page: parseInt(page),
             totalPages: Math.ceil(result.count / limit),
         }
     }
@@ -76,11 +76,14 @@ class QuoteService extends BaseService {
     }
 
     async update(id, data) {
+        const { patientId = null } = data
         const instance = await this.model.findByPk(id)
         if (!instance) throw new AppError('Item not found', 404)
 
-        const valid = await patientExists(patientId)
-        if (!valid) throw new AppError('Patient not found', 404)
+        if (patientId) {
+            const valid = await patientExists(patientId)
+            if (!valid) throw new AppError('Patient not found', 404)
+        }
 
         return instance.update(data)
     }

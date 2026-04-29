@@ -24,7 +24,7 @@ export const patientExists = async (patientId) => {
 
         if (!response.data.success) return false
 
-        return response.data.data.valid
+        return !!response.data.data
     } catch (error) {
         return false
     }
