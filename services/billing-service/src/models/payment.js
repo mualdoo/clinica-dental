@@ -35,6 +35,7 @@ Payment.init(
                 'refunded'
             ),
             allowNull: false,
+            defaultValue: 'completed',
         },
     },
     {

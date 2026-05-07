@@ -10,6 +10,11 @@ import {
     CalendarDays,
     Calendar,
     Plus,
+    MoreVertical,
+    CheckCircle2,
+    XCircle,
+    Pencil,
+    Trash2,
 } from 'lucide-react'
 import {
     Dialog,
@@ -19,10 +24,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { useAppointments, useInfiniteAppointments } from '@/hooks/use-agenda'
+import {
+    useInfiniteAppointments,
+    usePatchAppointment,
+    useDeleteAppointment,
+} from '@/hooks/use-agenda'
 import type { Appointment, AppointmentStatus } from '@/types/agenda'
 import { AppointmentForm } from '@/components/agenda/AppointmentForm'
 
@@ -160,37 +176,144 @@ function AgendaSkeleton() {
 
 // ─── Tarjeta de cita — Vista Diaria ──────────────────────────────────────────
 function AppointmentCard({ appt }: { appt: Appointment }) {
+    const { mutate: patch } = usePatchAppointment()
+    const { mutate: remove } = useDeleteAppointment()
+
+    // Estado usado para controlar el modal de edición
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
     return (
-        <div className="group relative flex gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
-            {/* Franja lateral de color según estado */}
-            <div
-                className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${STATUS_CONFIG[appt.status].dot}`}
-            />
-            <div className="ml-2 flex flex-col gap-1.5 flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                        <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{appt.patientName}</span>
+        <>
+            <div className="group relative flex gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
+                <div
+                    className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${STATUS_CONFIG[appt.status].dot}`}
+                />
+
+                <div className="ml-2 flex flex-col gap-1.5 flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                            <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="truncate">{appt.patientName}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <StatusBadge status={appt.status} />
+
+                            {/* ── Menú de acciones ── */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-44"
+                                >
+                                    {/* Marcar como completada — solo si está programada */}
+                                    {appt.status === 'scheduled' && (
+                                        <DropdownMenuItem
+                                            className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50"
+                                            onClick={() =>
+                                                patch({
+                                                    id: appt.id,
+                                                    dto: {
+                                                        status: 'completed',
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                            Marcar completada
+                                        </DropdownMenuItem>
+                                    )}
+                                    {appt.status === 'scheduled' && (
+                                        <DropdownMenuItem
+                                            className="gap-2 cursor-pointer text-amber-600 focus:text-amber-600 focus:bg-amber-50"
+                                            onClick={() =>
+                                                patch({
+                                                    id: appt.id,
+                                                    dto: {
+                                                        status: 'cancelled',
+                                                    },
+                                                })
+                                            }
+                                        >
+                                            <XCircle className="h-3.5 w-3.5" />
+                                            Cancelar cita
+                                        </DropdownMenuItem>
+                                    )}
+
+                                    {/* ACCIÓN DE EDITAR */}
+                                    <DropdownMenuItem
+                                        className="gap-2 cursor-pointer"
+                                        onSelect={() =>
+                                            setIsEditModalOpen(true)
+                                        }
+                                    >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                        Editar
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                        onClick={() => {
+                                            if (confirm('¿Eliminar esta cita?'))
+                                                remove(appt.id)
+                                        }}
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
-                    <StatusBadge status={appt.status} />
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(appt.startTime)} -{' '}
-                        {formatTime(appt.endTime)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {appt.Cubicle.name} - {appt.Cubicle.number}
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        Dr. {appt.dentistName}
-                    </span>
+
+                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {formatTime(appt.startTime)} –{' '}
+                            {formatTime(appt.endTime)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            Cubículo #{appt.Cubicle.number} ·{' '}
+                            {appt.Cubicle.name}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            Dr. {appt.dentistName}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* ── Modal de Edición de la Cita ── */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-150">
+                    <DialogHeader>
+                        <DialogTitle>Editar Cita</DialogTitle>
+                        <DialogDescription>
+                            Modifica los detalles o cambia el estado de la cita.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <AppointmentForm
+                        initialData={{
+                            id: appt.id,
+                            patientId: appt.patientId,
+                            dentistId: appt.dentistId,
+                            cubicleId: appt.cubicleId,
+                            startTime: appt.startTime,
+                            endTime: appt.endTime,
+                            status: appt.status,
+                        }}
+                        onSaved={() => setIsEditModalOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 
@@ -199,7 +322,7 @@ function MiniCard({ appt }: { appt: Appointment }) {
     return (
         <div className="rounded-lg border border-border/50 bg-card px-2 py-1.5 text-xs shadow-sm transition-colors hover:border-primary/30">
             <p className="font-medium text-foreground truncate">
-                #{appt.patientId.slice(-6)}
+                {appt.patientId.slice(-6)}
             </p>
             <div className="flex items-center justify-between gap-1 mt-0.5">
                 <span className="text-muted-foreground">
@@ -357,13 +480,12 @@ function WeeklyView({
 export default function AgendaPage() {
     const [view, setView] = useState<'daily' | 'weekly'>('daily')
     const [currentDate, setDate] = useState<Date | null>(null)
-    const [open, setOpen] = useState(false) // Lo moví arriba con los demás estados
+    const [open, setOpen] = useState(false)
 
     useEffect(() => {
         setDate(new Date())
     }, [])
 
-    // 2. Cálculos de variables (con valores por defecto por si currentDate es null)
     const weekStart = currentDate ? startOfWeek(currentDate) : new Date()
 
     const startTime = currentDate
@@ -380,25 +502,21 @@ export default function AgendaPage() {
             : addDays(weekStart, 7).toISOString()
         : ''
 
-    // 3. El Hook de la Query siempre se llama, pero se "pausa" con enabled
     const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
         useInfiniteAppointments({
             startTime,
             endTime,
-            // IMPORTANTE: Solo se ejecuta si tenemos las fechas listas
             enabled: !!currentDate && !!startTime,
         })
 
-    // 4. Memorización de funciones
     const navigate = useCallback(
         (dir: 1 | -1) => {
-            if (!currentDate) return // Seguridad extra
+            if (!currentDate) return
             setDate((d) => addDays(d as Date, dir * (view === 'daily' ? 1 : 7)))
         },
-        [view, currentDate] // Añadido currentDate a las dependencias
+        [view, currentDate]
     )
 
-    // 5. Preparación de datos para la UI
     const appointments: Appointment[] =
         data?.pages.flatMap((p) => p.data.data) ?? []
 
@@ -408,7 +526,6 @@ export default function AgendaPage() {
             : formatWeekRange(weekStart)
         : ''
 
-    // 6. AHORA SÍ, los retornos condicionales de UI van al final
     if (!currentDate || isLoading) {
         return <AgendaSkeleton />
     }
@@ -426,6 +543,8 @@ export default function AgendaPage() {
                             Gestión de citas y disponibilidad
                         </p>
                     </div>
+
+                    {/* Modal para Crear Nueva Cita */}
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button className="gap-2">
@@ -441,8 +560,10 @@ export default function AgendaPage() {
                                 </DialogDescription>
                             </DialogHeader>
 
-                            {/* Usamos el prop onCreated que definimos para cerrar el modal al terminar */}
-                            <AppointmentForm onCreated={() => setOpen(false)} />
+                            <AppointmentForm
+                                initialData={undefined}
+                                onSaved={() => setOpen(false)}
+                            />
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -502,8 +623,6 @@ export default function AgendaPage() {
                             <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>
-                    {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    </div> */}
 
                     {/* ── Vista Diaria ── */}
                     <TabsContent value="daily" className="mt-4">

@@ -17,10 +17,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAppointments } from '@/hooks/use-agenda'
 import { useHealthAlerts, useClinicalNotes } from '@/hooks/use-patient'
-import { useQuotesByPatient } from '@/hooks/use-billing'
+// import { useQuotesByPatient } from '@/hooks/use-billing'
 import { useAuthStore } from '@/store/auth-store'
 import type { AppointmentStatus } from '@/types/agenda'
 import type { HealthAlertType } from '@/types/patient'
+import { usePatientBalance } from '@/hooks/use-patient-balance'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(iso: string) {
@@ -120,6 +121,9 @@ function SectionCard({
 // ─── Página ───────────────────────────────────────────────────────────────────
 export default function PortalPage() {
     const router = useRouter()
+
+    const [isMounted, setIsMounted] = useState(false)
+
     const user = useAuthStore((s) => s.user)
     const activePatientId = useAuthStore((s) => s.activePatientId)
 
@@ -131,9 +135,31 @@ export default function PortalPage() {
     const { data: notesData, isLoading: notesLoading } = useClinicalNotes(
         activePatientId ?? ''
     )
-    const { data: quotesData, isLoading: quotesLoading } = useQuotesByPatient(
-        activePatientId ?? ''
-    )
+
+    const {
+        acceptedQuotes,
+        totalAmount,
+        totalPaid,
+        totalPending,
+        progressPct,
+        isLoading,
+    } = usePatientBalance(activePatientId ?? '')
+
+    // Hora del día para el saludo
+    const [greeting, setGreeting] = useState<string>('')
+
+    useEffect(() => {
+        setIsMounted(true)
+
+        const currentHour = new Date().getHours()
+        setGreeting(
+            currentHour < 12
+                ? 'Buenos días'
+                : currentHour < 19
+                  ? 'Buenas tardes'
+                  : 'Buenas noches'
+        )
+    }, [])
 
     // Próxima cita — la más cercana con status scheduled
     const allAppts = apptData?.data.data.flatMap((p) => p) ?? []
@@ -163,26 +189,6 @@ export default function PortalPage() {
 
     // Última nota clínica
     const lastNote = (notesData?.pages.flatMap((p) => p.data.data) ?? [])[0]
-
-    // Saldo pendiente — suma de (total - pagado) en presupuestos aceptados
-    const quotes = quotesData?.pages.flatMap((p) => p.data.data) ?? []
-    const totalPending = quotes
-        .filter((q) => q.status === 'accepted')
-        .reduce((acc, q) => acc + q.total, 0)
-
-    // Hora del día para el saludo
-    const [greeting, setGreeting] = useState<string>('')
-
-    useEffect(() => {
-        const currentHour = new Date().getHours()
-        setGreeting(
-            currentHour < 12
-                ? 'Buenos días'
-                : currentHour < 19
-                  ? 'Buenas tardes'
-                  : 'Buenas noches'
-        )
-    }, [])
 
     return (
         <div className="mx-auto max-w-2xl flex flex-col gap-5 pb-8">
@@ -230,7 +236,7 @@ export default function PortalPage() {
                 icon={<CalendarDays className="h-4 w-4 text-primary" />}
                 href="/portal/citas"
                 linkLabel="Mis citas"
-                isLoading={apptLoading}
+                isLoading={!isMounted || apptLoading}
             >
                 {nextAppt ? (
                     <div className="flex flex-col gap-3">
@@ -273,43 +279,11 @@ export default function PortalPage() {
                 icon={<CreditCard className="h-4 w-4 text-primary" />}
                 href="/portal/citas"
                 linkLabel="Ver detalle"
-                isLoading={quotesLoading}
+                isLoading={!isMounted || isLoading}
             >
-                {totalPending > 0 ? (
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-muted-foreground">
-                                Saldo pendiente
-                            </p>
-                            <p className="text-2xl font-bold text-rose-600">
-                                {formatMoney(totalPending)}
-                            </p>
-                        </div>
-                        {/* Barra visual */}
-                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                            <div className="h-full w-3/4 rounded-full bg-rose-400" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Tienes{' '}
-                            {
-                                quotes.filter((q) => q.status === 'accepted')
-                                    .length
-                            }{' '}
-                            presupuesto
-                            {quotes.filter((q) => q.status === 'accepted')
-                                .length !== 1
-                                ? 's'
-                                : ''}{' '}
-                            activo
-                            {quotes.filter((q) => q.status === 'accepted')
-                                .length !== 1
-                                ? 's'
-                                : ''}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-3 py-2">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 shrink-0">
+                {totalAmount === 0 ? (
+                    <div className="flex items-center gap-2.5 py-2">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 shrink-0">
                             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                         </div>
                         <div>
@@ -317,7 +291,63 @@ export default function PortalPage() {
                                 Sin saldo pendiente
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                Estás al corriente con tus pagos
+                                No hay presupuestos activos
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-3">
+                        {/* Totales */}
+                        <div className="grid grid-cols-3 gap-2">
+                            {[
+                                {
+                                    label: 'Total',
+                                    value: `$${totalAmount.toLocaleString('es-MX')} MXN`,
+                                    className: 'text-foreground',
+                                },
+                                {
+                                    label: 'Pagado',
+                                    value: `$${totalPaid.toLocaleString('es-MX')} MXN`,
+                                    className: 'text-emerald-600',
+                                },
+                                {
+                                    label: 'Pendiente',
+                                    value: `$${totalPending.toLocaleString('es-MX')} MXN`,
+                                    className:
+                                        totalPending > 0
+                                            ? 'text-rose-600'
+                                            : 'text-emerald-600',
+                                },
+                            ].map(({ label, value, className }) => (
+                                <div
+                                    key={label}
+                                    className="flex flex-col gap-0.5"
+                                >
+                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                                        {label}
+                                    </span>
+                                    <span
+                                        className={`text-xs font-bold ${className}`}
+                                    >
+                                        {value}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Barra de progreso */}
+                        <div className="flex flex-col gap-1">
+                            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                                <div
+                                    className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                                    style={{ width: `${progressPct}%` }}
+                                />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground text-right">
+                                {progressPct.toFixed(0)}% pagado ·{' '}
+                                {acceptedQuotes.length} presupuesto
+                                {acceptedQuotes.length !== 1 ? 's' : ''} activo
+                                {acceptedQuotes.length !== 1 ? 's' : ''}
                             </p>
                         </div>
                     </div>
@@ -330,7 +360,7 @@ export default function PortalPage() {
                 icon={<FileText className="h-4 w-4 text-primary" />}
                 href="/portal/expediente"
                 linkLabel="Mi expediente"
-                isLoading={notesLoading}
+                isLoading={!isMounted || notesLoading}
             >
                 {lastNote ? (
                     <div className="flex flex-col gap-2">
@@ -363,7 +393,7 @@ export default function PortalPage() {
                 title="Citas Recientes"
                 icon={<Clock className="h-4 w-4 text-primary" />}
                 href="/portal/citas"
-                isLoading={apptLoading}
+                isLoading={!isMounted || apptLoading}
             >
                 {recentAppts.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-2">

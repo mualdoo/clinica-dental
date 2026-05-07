@@ -27,6 +27,23 @@ class QuoteService extends BaseService {
             limit: parseInt(limit),
             offset: parseInt(offset),
             where: filter,
+            include: [
+                {
+                    model: QuoteItem,
+                    as: 'items',
+                    attributes: { exclude: ['createdAt', 'updatedAt'] },
+                    include: {
+                        model: Treatment,
+                        as: 'treatment',
+                        attributes: { exclude: ['createdAt', 'updatedAt'] },
+                    },
+                },
+                {
+                    model: Payment,
+                    as: 'Payments',
+                    attributes: { exclude: ['createdAt', 'updatedAt'] },
+                },
+            ],
         })
 
         return {
@@ -39,7 +56,8 @@ class QuoteService extends BaseService {
 
     async findById(user, id) {
         // const instance = await this.model.findByPk(id, {
-        const instance = Quote.findByPk(id, {
+        print('desde el service ', user, id)
+        const instance = await Quote.findByPk(id, {
             include: [
                 {
                     model: QuoteItem,
@@ -103,6 +121,14 @@ class QuoteController extends BaseController {
         user.role = req.headers['x-user-role']
         return user
     }
+
+    findAll = catchAsync(async (req, res) => {
+        const { page = 1, limit = 10 } = req.query
+        const user = this._getUserInHeaders(req)
+
+        const response = await this.service.findAll(user, { page, limit })
+        return ok(res, response)
+    })
 
     findByPatient = catchAsync(async (req, res) => {
         const { page = 1, limit = 10 } = req.query

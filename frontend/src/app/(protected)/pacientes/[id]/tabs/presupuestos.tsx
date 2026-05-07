@@ -485,7 +485,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                             {items.map((item) => {
                                 const t = treatmentMap[item.treatmentId]
                                 const subtotal = t
-                                    ? t.unitPrice * (1 - item.discount / 100)
+                                    ? t.unitPrice * (1 - item.discount)
                                     : 0
                                 return (
                                     <tr
@@ -500,7 +500,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                                         </td>
                                         <td className="hidden sm:table-cell px-3 py-2 text-center text-xs text-muted-foreground">
                                             {item.discount > 0
-                                                ? `${item.discount}%`
+                                                ? `${item.discount * 100}%`
                                                 : '—'}
                                         </td>
                                         <td className="px-3 py-2 text-right text-xs font-semibold text-foreground">
@@ -532,7 +532,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                                     Total
                                 </td>
                                 <td className="px-3 py-2 text-right text-sm font-bold text-foreground">
-                                    {formatMoney(calculatedTotal)}
+                                    {formatMoney(quote.total)}
                                 </td>
                                 {isDraft && <td />}
                             </tr>
