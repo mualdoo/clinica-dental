@@ -5,6 +5,7 @@ import type {
     CreateTreatmentDto,
     PatchTreatmentDto,
     Quote,
+    PatientQuote,
     QuoteParams,
     CreateQuoteDto,
     PatchQuoteDto,
@@ -67,7 +68,7 @@ export const quoteService = {
     getById: (id: string) => apiClient<Single<Quote>>(`/billing/quote/${id}`),
 
     getByPatient: (patientId: string, params: QuoteParams = {}) =>
-        apiClient<PaginatedResponse<Quote>>(
+        apiClient<PaginatedResponse<PatientQuote>>(
             `/billing/quote/patient/${patientId}${toQS({ page: 1, limit: 10, ...params })}`
         ),
 

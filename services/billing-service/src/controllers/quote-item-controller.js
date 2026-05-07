@@ -1,5 +1,5 @@
 import { ok, AppError, catchAsync } from '@mualdoo/shared'
-import { Quote, QuoteItem } from '../models/index.js'
+import { Quote, QuoteItem, Treatment, sequelize } from '../models/index.js'
 import { BaseService, BaseController } from './base/base-controller.js'
 
 const validateItem = async (quoteId) => {
@@ -7,6 +7,43 @@ const validateItem = async (quoteId) => {
     if (!quote) throw new AppError('Quote not found')
 
     if (quote.isActive()) throw new AppError('Active quotes cannot be changed')
+    return quote
+}
+
+const recalculateQuoteTotal = async (quoteId, transaction = null) => {
+    const items = await QuoteItem.findAll({
+        where: { quoteId },
+        include: [
+            {
+                model: Treatment,
+                as: 'treatment', // Usa el alias definido en tus asociaciones
+                attributes: ['unitPrice'],
+            },
+        ],
+        transaction,
+    })
+
+    let newTotal = 0
+
+    for (const item of items) {
+        if (!item.treatment) continue
+
+        const unitPrice = Number(item.treatment.unitPrice)
+        const discount = Number(item.discount || 0) // Ej: 0.2 para 20%
+
+        const finalPrice = unitPrice * (1 - discount)
+
+        newTotal += finalPrice
+    }
+
+    newTotal = Math.round(newTotal * 100) / 100
+
+    await Quote.update(
+        { total: newTotal },
+        { where: { id: quoteId }, transaction }
+    )
+
+    return newTotal
 }
 
 class QuoteItemService extends BaseService {
@@ -15,9 +52,21 @@ class QuoteItemService extends BaseService {
     }
 
     async create(data) {
-        await validateItem(data.quoteId)
+        const t = await sequelize.transaction()
 
-        return this.model.create(data)
+        try {
+            const newItem = await QuoteItem.create(data, { transaction: t })
+
+            await recalculateQuoteTotal(newItem.quoteId, t)
+
+            await t.commit()
+
+            return newItem
+        } catch (error) {
+            await t.rollback()
+            console.error('Error al crear el QuoteItem:', error)
+            throw error
+        }
     }
 
     async update(id, data) {
@@ -27,7 +76,21 @@ class QuoteItemService extends BaseService {
         if (instance.Quote.isActive())
             throw new AppError('Active quotes cannot be changed')
 
-        return instance.update(data)
+        const t = await sequelize.transaction()
+
+        try {
+            const newItem = await instance.update(data, { transaction: t })
+
+            await recalculateQuoteTotal(newItem.quoteId, t)
+
+            await t.commit()
+
+            return newItem
+        } catch (error) {
+            await t.rollback()
+            console.error('Error al editar el QuoteItem:', error)
+            throw error
+        }
     }
 
     async remove(id) {
@@ -36,6 +99,21 @@ class QuoteItemService extends BaseService {
         if (!instance) throw new AppError('Item not found', 404)
         if (instance.Quote.isActive())
             throw new AppError('Active quotes cannot be changed')
+
+        const t = await sequelize.transaction()
+
+        try {
+            const quoteId = instance.quoteId
+            await instance.destroy({ transaction: t })
+
+            await recalculateQuoteTotal(quoteId, t)
+
+            await t.commit()
+        } catch (error) {
+            await t.rollback()
+            console.error('Error al eliminar el QuoteItem:', error)
+            throw error
+        }
 
         await instance.destroy()
     }

@@ -16,7 +16,16 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { useCreateAppointment } from '@/hooks/use-agenda'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+
+// Actualizado para usar usePatchAppointment
+import { useCreateAppointment, usePatchAppointment } from '@/hooks/use-agenda'
 import { CubicleSelector } from './CubicleSelector'
 import { SearchSelector } from '../SearchSelector'
 import { useSearchPatients } from '@/hooks/use-patient'
@@ -24,7 +33,38 @@ import { Patient } from '@/types/patient'
 import { User as UserType } from '@/types/auth'
 import { useSearchDentists } from '@/hooks/use-auth'
 
-// 1. Esquema de validación
+export type AppointmentStatus =
+    | 'scheduled'
+    | 'completed'
+    | 'missed'
+    | 'cancelled'
+
+export const STATUS_CONFIG: Record<
+    AppointmentStatus,
+    { label: string; className: string; dot: string }
+> = {
+    scheduled: {
+        label: 'Programada',
+        className: 'bg-sky-100 text-sky-700 border-sky-200',
+        dot: 'bg-sky-500',
+    },
+    completed: {
+        label: 'Completada',
+        className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        dot: 'bg-emerald-500',
+    },
+    missed: {
+        label: 'Faltó',
+        className: 'bg-amber-100 text-amber-700 border-amber-200',
+        dot: 'bg-amber-500',
+    },
+    cancelled: {
+        label: 'Cancelada',
+        className: 'bg-rose-100 text-rose-700 border-rose-200',
+        dot: 'bg-rose-500',
+    },
+}
+
 const appointmentSchema = z.object({
     patientId: z.string().min(1, 'Selecciona un paciente'),
     dentistId: z.string().min(1, 'El doctor es obligatorio'),
@@ -32,14 +72,46 @@ const appointmentSchema = z.object({
     date: z.date('Fecha requerida'),
     startTime: z.string().min(1, 'Hora de inicio requerida'),
     endTime: z.string().min(1, 'Hora de fin requerida'),
+    status: z
+        .enum(['scheduled', 'completed', 'missed', 'cancelled'])
+        .optional(),
 })
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>
 
-export function AppointmentForm({ onCreated }: { onCreated?: () => void }) {
-    const { mutate: create, isPending } = useCreateAppointment()
+export interface AppointmentInitialData {
+    id: string
+    patientId: string
+    dentistId: string
+    cubicleId: string
+    startTime: string | Date
+    endTime: string | Date
+    status: AppointmentStatus
+}
 
-    // 2. Inicialización del formulario
+interface AppointmentFormProps {
+    initialData?: AppointmentInitialData
+    onSaved?: () => void
+}
+
+const extractTime = (dateValue: string | Date) => {
+    const d = new Date(dateValue)
+    return format(d, 'HH:mm')
+}
+
+export function AppointmentForm({
+    initialData,
+    onSaved,
+}: AppointmentFormProps) {
+    const isEditMode = !!initialData
+
+    const { mutate: create, isPending: isCreating } = useCreateAppointment()
+    // Renombrado para que coincida con tu hook
+    const { mutate: patchAppointment, isPending: isUpdating } =
+        usePatchAppointment()
+
+    const isPending = isCreating || isUpdating
+
     const {
         register,
         control,
@@ -50,38 +122,64 @@ export function AppointmentForm({ onCreated }: { onCreated?: () => void }) {
         reset,
     } = useForm<AppointmentFormValues>({
         resolver: zodResolver(appointmentSchema),
-        defaultValues: { startTime: '09:00', endTime: '10:00' },
+        defaultValues: initialData
+            ? {
+                  patientId: initialData.patientId,
+                  dentistId: initialData.dentistId,
+                  cubicleId: initialData.cubicleId,
+                  status: initialData.status,
+                  date: new Date(initialData.startTime),
+                  startTime: extractTime(initialData.startTime),
+                  endTime: extractTime(initialData.endTime),
+              }
+            : {
+                  startTime: '09:00',
+                  endTime: '10:00',
+                  status: 'scheduled',
+              },
     })
 
     const selectedDate = watch('date')
 
     const onSubmit = (values: AppointmentFormValues) => {
         const dateStr = format(values.date, 'yyyy-MM-dd')
-        create(
-            {
-                ...values,
-                startTime: new Date(
-                    `${dateStr}T${values.startTime}:00`
-                ).toISOString(),
-                endTime: new Date(
-                    `${dateStr}T${values.endTime}:00`
-                ).toISOString(),
-                status: 'scheduled',
-            },
-            {
+
+        const payload = {
+            patientId: values.patientId,
+            dentistId: values.dentistId,
+            cubicleId: values.cubicleId,
+            status: values.status || 'scheduled',
+            startTime: new Date(
+                `${dateStr}T${values.startTime}:00`
+            ).toISOString(),
+            endTime: new Date(`${dateStr}T${values.endTime}:00`).toISOString(),
+        }
+
+        if (isEditMode && initialData) {
+            // AQUÍ ESTÁ LA CORRECCIÓN: Separamos el 'id' del 'dto'
+            patchAppointment(
+                { id: initialData.id, dto: payload },
+                {
+                    onSuccess: () => {
+                        reset()
+                        onSaved?.()
+                    },
+                }
+            )
+        } else {
+            create(payload, {
                 onSuccess: () => {
                     reset()
-                    onCreated?.()
+                    onSaved?.()
                 },
-            }
-        )
+            })
+        }
     }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 p-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Paciente */}
-
                 <div className="space-y-2">
                     <Label>Paciente</Label>
                     <SearchSelector<Patient>
@@ -169,7 +267,7 @@ export function AppointmentForm({ onCreated }: { onCreated?: () => void }) {
                     )}
                 </div>
 
-                {/* Dentro de tu formulario */}
+                {/* Cubículo */}
                 <div className="space-y-2">
                     <Label>Cubículo / Sala</Label>
                     <Controller
@@ -198,11 +296,67 @@ export function AppointmentForm({ onCreated }: { onCreated?: () => void }) {
                     <Label>Hora Fin</Label>
                     <Input type="time" {...register('endTime')} />
                 </div>
+
+                {/* Selector de Estado (Solo Edición) */}
+                {isEditMode && initialData && (
+                    <div className="space-y-2 md:col-span-2">
+                        <Label>Estado de la Cita</Label>
+                        <Controller
+                            control={control}
+                            name="status"
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    disabled={
+                                        initialData.status !== 'scheduled'
+                                    }
+                                >
+                                    <SelectTrigger className="w-full md:w-1/2">
+                                        <SelectValue placeholder="Selecciona un estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {(
+                                            Object.keys(
+                                                STATUS_CONFIG
+                                            ) as AppointmentStatus[]
+                                        ).map((key) => (
+                                            <SelectItem key={key} value={key}>
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className={cn(
+                                                            'w-2 h-2 rounded-full',
+                                                            STATUS_CONFIG[key]
+                                                                .dot
+                                                        )}
+                                                    />
+                                                    {STATUS_CONFIG[key].label}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {initialData.status !== 'scheduled' && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                                No se puede cambiar el estado de una cita que ya
+                                fue{' '}
+                                {STATUS_CONFIG[
+                                    initialData.status
+                                ].label.toLowerCase()}
+                                .
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
 
             <Button type="submit" className="w-full mt-4" disabled={isPending}>
                 {isPending ? (
                     <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                ) : isEditMode ? (
+                    'Guardar Cambios'
                 ) : (
                     'Confirmar Cita'
                 )}

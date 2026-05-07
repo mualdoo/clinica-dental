@@ -51,6 +51,26 @@ export interface Payment {
     quoteId: string
 }
 
+export interface PatientItem {
+    id: string
+    treatmentId: string
+    quoteId: string
+    toothNumber: number
+    discount: number
+    treatment: Treatment
+}
+
+export interface PatientQuote {
+    id: string
+    patientId: string
+    notes: string
+    total: number
+    status: QuoteStatus
+    validUntil: string
+    items: PatientItem[]
+    Payments: Payment[]
+}
+
 // ─── DTOs ─────────────────────────────────────────────────────────────────────
 export interface CreateTreatmentDto {
     name: string
