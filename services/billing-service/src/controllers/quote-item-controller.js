@@ -126,6 +126,15 @@ class QuoteItemController extends BaseController {
         super(quoteItemService)
     }
 
+    findAll = catchAsync(async (req, res) => {
+        const { page = 1, limit = 10, quoteId = null } = req.query
+        let filter = {}
+        if (quoteId) filter.quoteId = quoteId
+
+        const response = await this.service.findAll({ page, limit, filter })
+        return ok(res, response)
+    })
+
     create = catchAsync(async (req, res) => {
         const { id } = req.params
         const response = await this.service.create({

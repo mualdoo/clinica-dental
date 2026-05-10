@@ -19,7 +19,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { RegisterUserForm } from '@/components/user/register-user-form'
-import { useDentists, useRegisterUser } from '@/hooks/use-user'
+import { useUsers, useRegisterUser } from '@/hooks/use-user'
 import type { RegisterPayload, User } from '@/types/auth'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -72,6 +72,7 @@ function AddDentistDialog({
                 </DialogHeader>
                 <div className="py-2">
                     <RegisterUserForm
+                        fixedRole="dentist"
                         isLoading={isPending}
                         onSubmit={handleSubmit}
                         onCancel={() => onOpenChange(false)}
@@ -124,7 +125,7 @@ export default function DentistasPage() {
     const [showModal, setShowModal] = useState(false)
     const [search, setSearch] = useState('')
 
-    const { data, isLoading } = useDentists()
+    const { data, isLoading } = useUsers('dentist')
     const dentists: User[] = data?.data.data ?? []
 
     const filtered = dentists.filter((d) =>

@@ -38,9 +38,6 @@ class PatientService {
             order: [['createdAt', 'DESC']],
             limit: parseInt(limit),
             offset: parseInt(offset),
-            attributes: {
-                exclude: ['address'],
-            },
             where: filter,
         })
 

@@ -43,7 +43,8 @@ Appointment.init(
                 'scheduled',
                 'completed',
                 'missed',
-                'cancelled'
+                'cancelled',
+                'ongoing'
             ),
             defaultValue: 'scheduled',
         },

@@ -3,6 +3,7 @@ export type AppointmentStatus =
     | 'completed'
     | 'missed'
     | 'cancelled'
+    | 'ongoing'
 
 export interface Cubicle {
     id: string
