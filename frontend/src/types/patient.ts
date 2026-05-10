@@ -29,6 +29,7 @@ export interface Patient {
     phone: string
     address: string
     bloodType: BloodType
+    completed: boolean
 }
 
 export interface ClinicalNote {

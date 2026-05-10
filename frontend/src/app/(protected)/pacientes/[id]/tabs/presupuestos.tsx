@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import {
     Plus,
     Trash2,
@@ -17,6 +20,12 @@ import {
     BadgeDollarSign,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import {
     useQuotesByPatient,
     useQuoteItems,
@@ -36,7 +45,6 @@ import type {
     QuoteStatus,
     PaymentStatus,
     PaymentMethod,
-    CreatePaymentDto,
 } from '@/types/billing'
 
 // ─── Configs visuales ─────────────────────────────────────────────────────────
@@ -123,6 +131,14 @@ function formatMoney(n: number) {
     return `$${n.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
 }
 
+function getTodayString() {
+    const today = new Date()
+    const yyyy = today.getFullYear()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+}
+
 // ─── Badge de estado ──────────────────────────────────────────────────────────
 function QuoteStatusBadge({ status }: { status: QuoteStatus }) {
     const cfg = QUOTE_STATUS_CFG[status]
@@ -147,7 +163,14 @@ function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
     )
 }
 
-// ─── Modal: Nuevo Presupuesto ─────────────────────────────────────────────────
+// ─── Schemas y Modales ────────────────────────────────────────────────────────
+
+const quoteSchema = z.object({
+    validUntil: z.string().min(1, 'La fecha es obligatoria'),
+    notes: z.string().optional(),
+})
+type QuoteFormValues = z.infer<typeof quoteSchema>
+
 function NewQuoteModal({
     patientId,
     onClose,
@@ -155,88 +178,105 @@ function NewQuoteModal({
     patientId: string
     onClose: () => void
 }) {
-    const [notes, setNotes] = useState('')
-    const [validUntil, setValidUntil] = useState('')
     const { mutate: create, isPending } = useCreateQuote()
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<QuoteFormValues>({
+        resolver: zodResolver(quoteSchema),
+        defaultValues: { notes: '' },
+    })
 
-    function handleSubmit() {
-        if (!validUntil) return
+    const minDate = getTodayString()
+
+    const onSubmit = (data: QuoteFormValues) => {
         create(
-            { patientId, notes, validUntil, status: 'draft' },
+            {
+                patientId,
+                notes: data.notes || '',
+                validUntil: data.validUntil,
+                status: 'draft',
+            },
             { onSuccess: onClose }
         )
     }
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose()
-            }}
-        >
-            <div className="w-full max-w-sm rounded-2xl bg-card border border-border shadow-2xl flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-                    <h2 className="text-base font-bold text-foreground">
+        <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-sm p-0 overflow-hidden">
+                <DialogHeader className="px-5 py-4 border-b border-border">
+                    <DialogTitle className="text-base font-bold text-foreground">
                         Nuevo Presupuesto
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div className="p-5 flex flex-col gap-4">
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Válido hasta{' '}
-                            <span className="text-destructive">*</span>
-                        </label>
-                        <input
-                            type="date"
-                            value={validUntil}
-                            onChange={(e) => setValidUntil(e.target.value)}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        />
+                    </DialogTitle>
+                </DialogHeader>
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col"
+                >
+                    <div className="p-5 flex flex-col gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Válido hasta{' '}
+                                <span className="text-destructive">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                min={minDate}
+                                {...register('validUntil')}
+                                className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            />
+                            {errors.validUntil && (
+                                <p className="text-[10px] text-destructive">
+                                    {errors.validUntil.message}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Notas
+                            </label>
+                            <textarea
+                                {...register('notes')}
+                                rows={3}
+                                placeholder="Observaciones del presupuesto…"
+                                className="rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                            />
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Notas
-                        </label>
-                        <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            rows={3}
-                            placeholder="Observaciones del presupuesto…"
-                            className="rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-                        />
+                    <div className="flex gap-2 px-5 pb-5">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={onClose}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="flex-1 gap-2"
+                            disabled={isPending}
+                        >
+                            {isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : null}
+                            Crear
+                        </Button>
                     </div>
-                </div>
-                <div className="flex gap-2 px-5 pb-5">
-                    <Button
-                        variant="outline"
-                        className="flex-1"
-                        onClick={onClose}
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        className="flex-1 gap-2"
-                        disabled={isPending || !validUntil}
-                        onClick={handleSubmit}
-                    >
-                        {isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : null}
-                        Crear
-                    </Button>
-                </div>
-            </div>
-        </div>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }
 
-// ─── Modal: Registrar Pago ────────────────────────────────────────────────────
+const paymentSchema = z.object({
+    amount: z.number().min(0.01, 'El monto debe ser mayor a 0'),
+    method: z.enum(['cash', 'card_credit', 'card_debit', 'transfer', 'check']),
+    reference: z.string().optional(),
+})
+type PaymentFormValues = z.infer<typeof paymentSchema>
+
 function NewPaymentModal({
     quoteId,
     remaining,
@@ -246,107 +286,120 @@ function NewPaymentModal({
     remaining: number
     onClose: () => void
 }) {
-    const [form, setForm] = useState<CreatePaymentDto>({
-        amount: remaining > 0 ? remaining : 0,
-        method: 'cash',
-        reference: '',
-    })
     const { mutate: create, isPending } = useCreatePayment(quoteId)
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<PaymentFormValues>({
+        resolver: zodResolver(paymentSchema),
+        defaultValues: {
+            amount: remaining > 0 ? remaining : 0,
+            method: 'cash',
+            reference: '',
+        },
+    })
 
-    const set =
-        (k: keyof CreatePaymentDto) =>
-        (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-            setForm((f) => ({
-                ...f,
-                [k]: k === 'amount' ? Number(e.target.value) : e.target.value,
-            }))
+    const onSubmit = (data: PaymentFormValues) => {
+        create(
+            {
+                amount: data.amount,
+                method: data.method,
+                reference: data.reference || '',
+            },
+            { onSuccess: onClose }
+        )
+    }
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose()
-            }}
-        >
-            <div className="w-full max-w-sm rounded-2xl bg-card border border-border shadow-2xl flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-                    <h2 className="text-base font-bold text-foreground">
+        <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent className="sm:max-w-sm p-0 overflow-hidden">
+                <DialogHeader className="px-5 py-4 border-b border-border">
+                    <DialogTitle className="text-base font-bold text-foreground">
                         Registrar Pago
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground transition-colors text-lg leading-none"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div className="p-5 flex flex-col gap-4">
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Monto
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            value={form.amount}
-                            onChange={set('amount')}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                        />
+                    </DialogTitle>
+                </DialogHeader>
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col"
+                >
+                    <div className="p-5 flex flex-col gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Monto
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                min={0.01}
+                                {...register('amount')}
+                                className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            />
+                            {errors.amount && (
+                                <p className="text-[10px] text-destructive">
+                                    {errors.amount.message}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Método de pago
+                            </label>
+                            <select
+                                {...register('method')}
+                                className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                            >
+                                {(
+                                    Object.keys(
+                                        PAYMENT_METHOD_LABELS
+                                    ) as PaymentMethod[]
+                                ).map((m) => (
+                                    <option key={m} value={m}>
+                                        {PAYMENT_METHOD_LABELS[m]}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.method && (
+                                <p className="text-[10px] text-destructive">
+                                    {errors.method.message}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Referencia (opcional)
+                            </label>
+                            <input
+                                type="text"
+                                {...register('reference')}
+                                placeholder="Número de transferencia, folio…"
+                                className="h-9 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                            />
+                        </div>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Método de pago
-                        </label>
-                        <select
-                            value={form.method}
-                            onChange={set('method')}
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    <div className="flex gap-2 px-5 pb-5">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={onClose}
                         >
-                            {(
-                                Object.keys(
-                                    PAYMENT_METHOD_LABELS
-                                ) as PaymentMethod[]
-                            ).map((m) => (
-                                <option key={m} value={m}>
-                                    {PAYMENT_METHOD_LABELS[m]}
-                                </option>
-                            ))}
-                        </select>
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="flex-1 gap-2"
+                            disabled={isPending}
+                        >
+                            {isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : null}
+                            Registrar
+                        </Button>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                            Referencia (opcional)
-                        </label>
-                        <input
-                            type="text"
-                            value={form.reference}
-                            onChange={set('reference')}
-                            placeholder="Número de transferencia, folio…"
-                            className="h-9 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                        />
-                    </div>
-                </div>
-                <div className="flex gap-2 px-5 pb-5">
-                    <Button
-                        variant="outline"
-                        className="flex-1"
-                        onClick={onClose}
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        className="flex-1 gap-2"
-                        disabled={isPending || form.amount <= 0}
-                        onClick={() => create(form, { onSuccess: onClose })}
-                    >
-                        {isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : null}
-                        Registrar
-                    </Button>
-                </div>
-            </div>
-        </div>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }
 
@@ -361,7 +414,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
 
     const [selectedTreatment, setSelectedTreatment] = useState('')
     const [toothNumber, setToothNumber] = useState('')
-    const [discount, setDiscount] = useState('0')
+    const [discount, setDiscount] = useState('') // ← Cambio aquí para permitir el placeholder
 
     const treatments = treatmentsData?.data.data ?? []
     const items: QuoteItem[] = itemsData?.data.data ?? []
@@ -375,25 +428,17 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
             {
                 treatmentId: selectedTreatment,
                 toothNumber: toothNumber ? parseInt(toothNumber) : 0,
-                discount: parseFloat(discount) || 0,
+                discount: (parseFloat(discount) || 0) / 100,
             },
             {
                 onSuccess: () => {
                     setSelectedTreatment('')
                     setToothNumber('')
-                    setDiscount('0')
+                    setDiscount('') // Restablecer al string vacío
                 },
             }
         )
     }
-
-    // Calcula total real desde los items
-    const calculatedTotal = items.reduce((acc, item) => {
-        const t = treatmentMap[item.treatmentId]
-        if (!t) return acc
-        const subtotal = t.unitPrice * (1 - item.discount / 100)
-        return acc + subtotal
-    }, 0)
 
     const isDraft = quote.status === 'draft'
 

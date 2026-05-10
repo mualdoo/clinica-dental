@@ -46,6 +46,10 @@ Patient.init(
         phone: DataTypes.STRING,
         address: DataTypes.STRING,
         bloodType: DataTypes.STRING(5),
+        completed: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
     },
     {
         sequelize,

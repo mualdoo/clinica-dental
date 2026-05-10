@@ -5,6 +5,7 @@ import type {
     LoginPayload,
     RegisterPayload,
     User,
+    UserRole,
 } from '@/types/auth'
 
 export const authService = {
@@ -29,7 +30,8 @@ export const authService = {
         apiClient<PaginatedResponse<User>>(
             `/auth/dentist/search?key=${encodeURIComponent(query)}`
         ),
-    listUsers: () => apiClient<PaginatedResponse<User>>('/auth/user'),
+    listUsers: (role: UserRole) =>
+        apiClient<PaginatedResponse<User>>(`/auth/user?role=${role}`),
     registerUser: (payload: RegisterPayload) =>
         apiClient<AuthResponse>('/auth/admin/register-user', {
             method: 'POST',
