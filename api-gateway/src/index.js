@@ -93,6 +93,12 @@ app.use(
     getProxyMidleware('http://billing-service:3004')
 )
 
+app.use(
+    '/inventory',
+    authenticateToken,
+    getProxyMidleware('http://inventory-service:3005')
+)
+
 const PORT = process.env.PORT
 const HOST = process.env.HOST
 

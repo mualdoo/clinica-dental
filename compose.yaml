@@ -122,6 +122,19 @@ services:
       postgres:
         condition: service_healthy
 
+  inventory-service:
+    build:
+      context: ./services/inventory-service
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    env_file:
+      - ./services/inventory-service/.env
+    networks:
+      - dental-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   notification-service:
     build:
       context: ./services/notification-service
