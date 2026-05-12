@@ -1,0 +1,19 @@
+{
+  "name": "worker-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^2.0.1",
+    "axios": "^1.16.0",
+    "dotenv": "^17.4.2",
+    "node-cron": "^4.2.1"
+  }
+}

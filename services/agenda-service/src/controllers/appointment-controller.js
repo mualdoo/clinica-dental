@@ -152,6 +152,25 @@ class AppointmentService extends BaseService {
 
         await instance.destroy()
     }
+
+    async internalFindAll({ page, limit, filter = {} } = {}) {
+        const offset = (page - 1) * limit
+
+        const result = await this.model.findAndCountAll({
+            order: [['startTime', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            where: filter,
+            include: Cubicle,
+        })
+
+        return {
+            data: result.rows,
+            total: result.count,
+            page: parseInt(page),
+            totalPages: Math.ceil(result.count / limit),
+        }
+    }
 }
 
 export const appointmentService = new AppointmentService()
@@ -226,6 +245,18 @@ class AppointmentController extends BaseController {
 
         await this.service.remove(user, req.params.id)
         return ok(res, 'Item removed')
+    })
+
+    internalFindAll = catchAsync(async (req, res) => {
+        const { page = 1, limit = 50 } = req.query
+        const filter = buildAppointmentFilter(req.query)
+
+        const response = await this.service.internalFindAll({
+            page,
+            limit,
+            filter,
+        })
+        return ok(res, response)
     })
 }
 
