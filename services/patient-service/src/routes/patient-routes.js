@@ -32,7 +32,7 @@ router.post(
 )
 router.patch(
     '/:id',
-    authorize(['admin', 'receptionist', 'patient']),
+    authorize(['admin', 'receptionist', 'dentist', 'patient']),
     patientController.update
 )
 router.delete(

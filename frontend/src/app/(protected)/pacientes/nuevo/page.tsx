@@ -13,7 +13,7 @@ export default function NuevoPacientePage() {
     function handleSubmit(data: CreatePatientDto) {
         createPatient(data, {
             onSuccess: (res) => {
-                router.push(`/pacientes/${res.data.id}`)
+                router.push('/pacientes')
             },
         })
     }
