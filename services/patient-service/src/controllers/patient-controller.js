@@ -1,7 +1,7 @@
 import { Patient } from '../models/index.js'
-import { ok, catchAsync, publishEvent } from '@mualdoo/shared'
+import { ok, catchAsync, publishEvent, AppError } from '@mualdoo/shared'
 import amqp from 'amqplib'
-import { Op } from 'sequelize'
+import { Op, where } from 'sequelize'
 import getUser from '../services/auth-service.js'
 
 class PatientService {
@@ -102,7 +102,20 @@ class PatientService {
             data.authUserId = patientUser.id
             data.email = patientUser.email
         } else {
-            const id = crypto.randomUUID()
+            // Verificar si hay otra cuenta de paciente asociada al mismo correo
+            const patients = await Patient.findAndCountAll({
+                where: { email: data.email },
+            })
+
+            let id = crypto.randomUUID()
+            if (patients.count >= 3) {
+                throw new AppError(
+                    'Accounts can only have 3 patients associated'
+                )
+            } else if (patients.count > 0) {
+                id = patients.rows[0].authUserId
+            }
+
             data.authUserId = id
             await publishEvent(
                 amqp,

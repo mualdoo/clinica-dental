@@ -29,7 +29,6 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
             href: '/ajustes/tratamientos',
             icon: FileText,
         },
-        { label: 'Ajustes', href: '/ajustes', icon: Settings },
     ],
     dentist: [
         { label: 'Agenda', href: '/agenda', icon: CalendarDays },
