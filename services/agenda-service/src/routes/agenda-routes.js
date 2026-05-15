@@ -3,6 +3,7 @@ const router = Router()
 import { cubicleController } from '../controllers/cubicle-controller.js'
 import { appointmentController } from '../controllers/appointment-controller.js'
 import { authorize } from '../middleware/role-check.js'
+import { verifyInternalKey } from '../middleware/internal.js'
 
 // Cubicle
 router.get(
@@ -56,6 +57,18 @@ router.delete(
     '/appointment/:id',
     authorize(['admin', 'receptionist', 'patient']),
     appointmentController.remove
+)
+
+// Internal
+router.get(
+    '/internal/appointment',
+    verifyInternalKey,
+    appointmentController.internalFindAll
+)
+router.patch(
+    '/internal/appointment/:id',
+    verifyInternalKey,
+    appointmentController.setSent
 )
 
 export default router

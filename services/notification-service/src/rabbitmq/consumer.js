@@ -1,37 +1,42 @@
-import { connect } from 'amqplib';
-import { setupConsumer } from '@mualdoo/shared';
-import { sendAccountVerificationEmail, sendAppointmentConfirmationEmail } from '../services/email-service.js';
+import { connect } from 'amqplib'
+import { setupConsumer } from '@mualdoo/shared'
+import {
+    sendAccountVerificationEmail,
+    sendAppointmentConfirmationEmail,
+} from '../services/email-service.js'
 
 export default async function startConsumers() {
     try {
-        const conn = await connect(process.env.RABBITMQ_URL);
-        const channel = await conn.createChannel();
+        const conn = await connect(process.env.RABBITMQ_URL)
+        const channel = await conn.createChannel()
 
-        channel.prefetch(1);
-        
+        channel.prefetch(1)
+
         // Consumer after creating a patient account (by system)
         await setupConsumer(
             channel,
             'patient_account_created_exchange',
-            'patient_account_queue',
+            'patient_account_email',
             async (data) => {
-                return await sendAccountVerificationEmail(data);
+                // return await sendAccountVerificationEmail(data) // Change
+                console.log('patient_account_created Email sent', data)
             }
-        );
-        
+        )
+
         // Consumer after creating an appointment
         await setupConsumer(
             channel,
             'appointment_created_exchange',
             'appointment_created_queue',
             async (data) => {
-                return await sendAppointmentConfirmationEmail(data);
+                // return await sendAppointmentConfirmationEmail(data); // Change
+                console.log('appointment_created Email sent', data)
             }
-        );
+        )
 
-        console.log('notification-service listening messages');
+        console.log('notification-service listening messages')
     } catch (error) {
-        console.error('Error connecting to rabbitMQ:', error.message);
-        setTimeout(startConsumers, 5000);
+        console.error('Error connecting to rabbitMQ:', error.message)
+        setTimeout(startConsumers, 5000)
     }
 }

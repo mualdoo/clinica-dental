@@ -1,41 +1,90 @@
-import { Resend } from 'resend';
+import { Resend } from 'resend'
+import { renderTemplate } from '../utils/template-compiler.js'
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+function formatDate(date) {
+    return new Intl.DateTimeFormat('es-MX', {
+        weekday: 'long', // 'miércoles'
+        year: 'numeric', // '2026'
+        month: 'long', // 'mayo'
+        day: 'numeric', // '20'
+        hour: '2-digit', // '04'
+        minute: '2-digit', // '30'
+        hour12: true, // AM/PM
+        timeZone: 'America/Mexico_City', // Asegura la hora correcta local
+    }).format(date)
+}
 
 export const sendAccountVerificationEmail = async (data) => {
     try {
-        const response = await resend.emails.send({
+        const htmlContent = await renderTemplate('verificar-cuenta', {
+            fullName: data.fullName,
+            link: `${process.env.FRONTEND_URL}/verificar-cuenta?token=${data.token}`,
+        })
+
+        const { data: response, error } = await resend.emails.send({
             from: process.env.EMAIL_FROM,
             to: data.email,
-            subject: 'Verifica tu cuenta',
-            html: `
-            ${data.fullName}.
-            Ingresa al siguiente enlace para verificar tu cuenta: ${data.token}
-            El enlace expirará en 24h.
-            `
-        });
+            subject: 'Completa tu registro - Establece tu contraseña',
+            html: htmlContent,
+        })
 
-        console.log('Email sent:', response.id);
+        if (error) throw error
+
+        console.log('Correo enviado: ', response)
+        return response
     } catch (error) {
         console.error('Error sending email:', error.message)
     }
-};
+}
 
 export const sendAppointmentConfirmationEmail = async (data) => {
     try {
-        const response = await resend.emails.send({
+        const htmlContent = await renderTemplate('confirmacion-cita', {
+            patientFullName: data.patientName,
+            dentistFullName: data.dentistName,
+            date: formatDate(data.appointmentDate),
+            cubicle: data.cubicle,
+        })
+
+        const { data: response, error } = await resend.emails.send({
             from: process.env.EMAIL_FROM,
             to: data.email,
             subject: 'Confirmación de cita médica',
-            html: `
-                <h2>Hola ${data.fullName}</h2>
-                <h2>Tu cita ha sido confirmada</h2>
-                <p><strong>Fecha:</strong> ${data.appointmentDate}</p>
-            `
-        });
+            html: htmlContent,
+        })
 
-        console.log("Email enviado:", response.id);
+        if (error) throw error
+
+        console.log('Correo enviado:', response)
+        return response
     } catch (error) {
-        console.error("Error enviando email:", error.message);
+        console.error('Error enviando email:', error.message)
     }
-};
+}
+
+export const sendAppointmentReminderEmail = async (data) => {
+    try {
+        const htmlContent = await renderTemplate('recordatorio-cita', {
+            patientFullName: data.patientName,
+            dentistFullName: data.dentistName,
+            date: formatDate(new Date(data.appointmentDate)),
+            cubicle: data.cubicle,
+        })
+
+        const { data: response, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM,
+            to: data.email,
+            subject: 'Recordatorio de cita médica',
+            html: htmlContent,
+        })
+
+        if (error) throw error
+
+        console.log('Correo enviado:', response)
+        return response
+    } catch (error) {
+        console.error('Error enviando email:', error.message)
+    }
+}

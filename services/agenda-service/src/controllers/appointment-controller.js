@@ -77,6 +77,17 @@ class AppointmentService extends BaseService {
         if (!valid) throw new AppError('Permission denied', 403)
     }
 
+    _isLessThan24HoursAway = (date) => {
+        const now = Date.now()
+        const targetTime = new Date(date).getTime()
+
+        const timeDifference = targetTime - now
+        const twentyFourHoursInMs = 24 * 60 * 60 * 1000
+
+        // Verifica que la fecha sea en el futuro (> 0) y esté dentro del rango de 24 horas
+        return timeDifference > 0 && timeDifference <= twentyFourHoursInMs
+    }
+
     async _patientExists(patientId) {
         const patient = await patientExists(patientId)
         if (!patient) throw new AppError('Patient not found', 404)
@@ -129,7 +140,28 @@ class AppointmentService extends BaseService {
         data.patientName = `${patient.name} ${patient.lastName}`
         data.dentistName = `${dentist.name} ${dentist.lastName}`
 
-        return this.model.create(data)
+        if (this._isLessThan24HoursAway(data.startTime)) {
+            data.reminderSentAt = new Date()
+        }
+
+        const newAppointment = await this.model.create(data)
+
+        const cubicle = await Cubicle.findByPk(newAppointment.cubicleId)
+
+        await publishEvent(
+            amqp,
+            'appointment_created_exchange',
+            process.env.RABBITMQ_URL,
+            {
+                email: patient.email,
+                patientName: newAppointment.patientName,
+                dentistName: newAppointment.dentistName,
+                appointmentDate: newAppointment.startTime,
+                cubicle: `#${cubicle.number} - ${cubicle.name}`,
+            }
+        )
+
+        return newAppointment
     }
 
     async update(user, id, data) {
@@ -151,6 +183,27 @@ class AppointmentService extends BaseService {
         await this._verifyOwnership(user)
 
         await instance.destroy()
+    }
+
+    async internalFindAll(filter = {}) {
+        filter.reminderSentAt = {}
+        filter.reminderSentAt[Op.eq] = null
+
+        const result = await this.model.findAll({
+            order: [['startTime', 'DESC']],
+            where: filter,
+            include: Cubicle,
+        })
+
+        return result
+    }
+
+    async setSent(id) {
+        const instance = await this.model.findByPk(id)
+
+        if (!instance) throw new AppError('Appointment not found', 404)
+
+        return instance.update({ reminderSentAt: new Date() })
     }
 }
 
@@ -196,17 +249,6 @@ class AppointmentController extends BaseController {
 
         const appointment = await this.service.create(user, req.body)
 
-        await publishEvent(
-            amqp,
-            'appointment_created_exchange',
-            process.env.RABBITMQ_URL,
-            {
-                email: user.email,
-                fullName: user.fullName,
-                appointmentDate: appointment.startTime,
-            }
-        )
-
         return ok(res, appointment, 201)
     })
 
@@ -226,6 +268,18 @@ class AppointmentController extends BaseController {
 
         await this.service.remove(user, req.params.id)
         return ok(res, 'Item removed')
+    })
+
+    internalFindAll = catchAsync(async (req, res) => {
+        const response = await this.service.internalFindAll()
+        return ok(res, response)
+    })
+
+    setSent = catchAsync(async (req, res) => {
+        const { id } = req.params
+
+        const response = await this.service.setSent(id)
+        return ok(res, response)
     })
 }
 

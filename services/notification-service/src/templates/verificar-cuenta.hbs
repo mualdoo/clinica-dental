@@ -1,0 +1,70 @@
+<html lang='es'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <title>Confirma tu cuenta</title>
+    </head>
+    <body
+        style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 0;'
+    >
+        <table
+            width='100%'
+            cellpadding='0'
+            cellspacing='0'
+            style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'
+        >
+            <tr>
+                <td
+                    style='background-color: #0056b3; padding: 20px; text-align: center; color: #ffffff;'
+                >
+                    <h1 style='margin: 0; font-size: 24px;'>Bienvenido a Nuestra
+                        Clínica</h1>
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 40px 30px;'>
+                    <h2 style='color: #333333; margin-top: 0;'>Hola,
+                        {{fullName}}</h2>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6;'
+                    >
+                        Tu perfil como paciente ha sido creado exitosamente por
+                        nuestro equipo de recepción. Para finalizar tu registro
+                        y poder acceder a tu portal, necesitas crear una
+                        contraseña segura.
+                    </p>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'
+                    >
+                        Por favor, haz clic en el siguiente botón para
+                        establecer tu contraseña y activar tu cuenta:
+                    </p>
+                    <div style='text-align: center;'>
+                        <a
+                            href='{{link}}'
+                            style='display: inline-block; background-color: #0056b3; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 16px; font-weight: bold;'
+                        >
+                            Establecer mi contraseña
+                        </a>
+                    </div>
+                    <p
+                        style='color: #888888; font-size: 14px; line-height: 1.5; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px;'
+                    >
+                        <strong>Nota importante:</strong>
+                        Por razones de seguridad, este enlace expirará en
+                        <strong>24 horas</strong>. Si el enlace vence, deberás
+                        solicitar uno nuevo en recepción.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style='background-color: #f4f7f6; padding: 20px; text-align: center; color: #aaaaaa; font-size: 12px;'
+                >
+                    © 2026 --Nombre de la Clínica--. Todos los derechos
+                    reservados.
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

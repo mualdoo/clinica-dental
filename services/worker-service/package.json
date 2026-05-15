@@ -1,5 +1,5 @@
 {
-  "name": "notification-service",
+  "name": "worker-service",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,11 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "@mualdoo/shared": "^6.0.1",
-    "amqplib": "^0.10.9",
-    "axios": "^1.13.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "handlebars": "^4.7.9",
-    "resend": "^6.9.3"
+    "amqplib": "^2.0.1",
+    "axios": "^1.16.0",
+    "dotenv": "^17.4.2",
+    "node-cron": "^4.2.1"
   }
 }
