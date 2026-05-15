@@ -1,0 +1,86 @@
+<html lang='es'>
+    <head>
+        <meta charset='UTF-8' />
+        <title>Recordatorio de Cita Dental</title>
+    </head>
+    <body
+        style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 0;'
+    >
+        <table
+            width='100%'
+            cellpadding='0'
+            cellspacing='0'
+            style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'
+        >
+            <tr>
+                <td
+                    style='background-color: #ffc107; padding: 20px; text-align: center; color: #333333;'
+                >
+                    <h1 style='margin: 0; font-size: 24px;'>Recordatorio de tu
+                        cita mañana</h1>
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 40px 30px;'>
+                    <h2 style='color: #333333; margin-top: 0;'>Hola,
+                        {{patientFullName}}</h2>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6;'
+                    >
+                        Nos comunicamos para recordarte que mañana tienes una
+                        cita programada con nosotros. Te compartimos los
+                        detalles nuevamente:
+                    </p>
+
+                    <table
+                        width='100%'
+                        cellpadding='10'
+                        cellspacing='0'
+                        style='background-color: #fff8e1; border-radius: 6px; margin: 20px 0; border: 1px solid #ffe082;'
+                    >
+                        <tr>
+                            <td
+                                style='color: #555; font-weight: bold; width: 30%;'
+                            >Fecha y Hora:</td>
+                            <td style='color: #333;'>{{date}}</td>
+                        </tr>
+                        <tr>
+                            <td
+                                style='color: #555; font-weight: bold;'
+                            >Especialista:</td>
+                            <td style='color: #333;'>Dr(a).
+                                {{dentistFullName}}</td>
+                        </tr>
+                        <tr>
+                            <td
+                                style='color: #555; font-weight: bold;'
+                            >Ubicación:</td>
+                            <td style='color: #333;'>Cubículo {{cubicle}}</td>
+                        </tr>
+                    </table>
+
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6;'
+                    >
+                        <strong>Importante:</strong>
+                        Si por algún motivo no puedes asistir, te pedimos
+                        amablemente que nos avises con anticipación para poder
+                        ofrecer el espacio a otro paciente.
+                    </p>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6; font-weight: bold;'
+                    >
+                        ¡Nos vemos pronto!
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style='background-color: #f4f7f6; padding: 20px; text-align: center; color: #aaaaaa; font-size: 12px;'
+                >
+                    © 2026 Clínica Dental. Todos los derechos reservados.
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

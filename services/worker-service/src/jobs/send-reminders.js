@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const internalHeaders = {
-    'x-internal-secret': process.env.INTERNAL_SERVICE_KEY,
+    'x-internal-key': process.env.INTERNAL_SERVICE_KEY,
 }
 
 const getTomorrowDate = () => {
@@ -12,19 +12,8 @@ const getTomorrowDate = () => {
 
 const sendReminder = async (appointment) => {
     await axios.post(
-        `${process.env.NOTIFICATIONS_SERVICE_URL}/api/v1/notifications/send`,
-        {
-            type: 'APPOINTMENT_REMINDER',
-            channel: ['whatsapp', 'email'],
-            payload: {
-                patientName: appointment.patientName,
-                patientPhone: appointment.patientPhone,
-                patientEmail: appointment.patientEmail,
-                doctorName: appointment.doctorName,
-                date: appointment.startTime,
-                cubicle: appointment.cubicle,
-            },
-        },
+        `${process.env.NOTIFICATION_SERVICE_URL}/send`,
+        appointment,
         { headers: internalHeaders }
     )
 }
@@ -50,11 +39,11 @@ export default async function sendReminders() {
         const appointments = data.data
 
         if (!appointments.length) {
-            console.log('📭 No hay citas mañana, nada que notificar.')
+            console.log('No hay citas mañana, nada que notificar.')
             return
         }
 
-        console.log(`📋 Encontradas ${appointments.length} citas para mañana.`)
+        console.log(`Encontradas ${appointments.length} citas para mañana.`)
 
         const results = await Promise.allSettled(
             appointments.map((appointment) => sendReminder(appointment))
@@ -63,8 +52,8 @@ export default async function sendReminders() {
         const sent = results.filter((r) => r.status === 'fulfilled').length
         const failed = results.filter((r) => r.status === 'rejected').length
 
-        console.log(`✅ Enviados: ${sent} | ❌ Fallidos: ${failed}`)
+        console.log(`Enviados: ${sent} | Fallidos: ${failed}`)
     } catch (err) {
-        console.error('❌ Error en sendReminders:', err.message)
+        console.error('Error en sendReminders:', err.message)
     }
 }

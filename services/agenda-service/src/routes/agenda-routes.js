@@ -65,5 +65,10 @@ router.get(
     verifyInternalKey,
     appointmentController.internalFindAll
 )
+router.patch(
+    '/internal/appointment/:id',
+    verifyInternalKey,
+    appointmentController.setSent
+)
 
 export default router
