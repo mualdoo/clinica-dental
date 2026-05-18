@@ -332,7 +332,7 @@ function NewPaymentModal({
                                 type="number"
                                 step="0.01"
                                 min={0.01}
-                                {...register('amount')}
+                                {...register('amount', { valueAsNumber: true })}
                                 className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                             />
                             {errors.amount && (

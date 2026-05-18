@@ -8,6 +8,8 @@ import {
     Building2,
     FileText,
     type LucideIcon,
+    Archive,
+    Receipt,
 } from 'lucide-react'
 import type { UserRole } from '@/types/auth'
 
@@ -19,7 +21,6 @@ export interface NavItem {
 
 const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     admin: [
-        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { label: 'Agenda', href: '/agenda', icon: CalendarDays },
         { label: 'Pacientes', href: '/pacientes', icon: Users },
         { label: 'Dentistas', href: '/ajustes/dentistas', icon: UserCog },
@@ -29,6 +30,8 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
             href: '/ajustes/tratamientos',
             icon: FileText,
         },
+        { label: 'Facturación', href: '/ajustes/facturacion', icon: Receipt },
+        { label: 'Inventario', href: '/ajustes/inventario', icon: Archive },
     ],
     dentist: [
         { label: 'Agenda', href: '/agenda', icon: CalendarDays },
