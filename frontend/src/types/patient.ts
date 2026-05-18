@@ -69,6 +69,7 @@ export interface Tooth {
     condition: string
     notes: string
     createdBy: string
+    updatedAt: string
 }
 
 // ─── Parámetros de paginación ─────────────────────────────────────────────────
