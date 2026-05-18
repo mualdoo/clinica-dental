@@ -176,6 +176,14 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  storage-service:
+    build:
+      context: ./services/storage-service
+    env_file:
+      - ./services/storage-service/.env
+    networks:
+      - dental-network
+
 networks:
   dental-network:
     driver: bridge

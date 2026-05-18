@@ -11,9 +11,20 @@ export async function apiClient<T = unknown>(
     options: RequestOptions = {}
 ): Promise<T> {
     const { withAuth = true, headers, ...rest } = options
+    const finalHeaders = new Headers(headers as HeadersInit)
+    // Si hay un body, y NO es un FormData (archivo), y no tiene Content-Type previo...
+    if (
+        rest.body &&
+        !(rest.body instanceof FormData) &&
+        !finalHeaders.has('Content-Type')
+    ) {
+        // ...entonces forzamos que sea JSON.
+        finalHeaders.set('Content-Type', 'application/json')
+    }
 
     const res = await fetch(`${GATEWAY_PROXY}${path}`, {
         ...rest,
+        headers: finalHeaders, // Pasamos nuestros headers procesados
         credentials: 'include',
     })
 

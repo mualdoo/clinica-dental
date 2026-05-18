@@ -7,6 +7,7 @@ import { itemController } from '../controllers/item-controller.js'
 import { movementController } from '../controllers/movement-controller.js'
 import { orderController } from '../controllers/order-controller.js'
 
+// TODO: Agregar dentista
 // Supplier
 router.get(
     '/supplier',
