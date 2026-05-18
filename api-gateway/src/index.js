@@ -44,12 +44,10 @@ app.post(
         const { patientId, event, tooth, toothId, toothNumber } = req.body
 
         if (!patientId || !event) {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    error: 'patientId y event son requeridos',
-                })
+            return res.status(400).json({
+                success: false,
+                error: 'patientId y event son requeridos',
+            })
         }
 
         try {
@@ -127,6 +125,12 @@ app.use(
     '/inventory',
     authenticateToken,
     getProxyMidleware('http://inventory-service:3005')
+)
+
+app.use(
+    '/storage',
+    authenticateToken,
+    getProxyMidleware('http://storage-service:3007')
 )
 
 const httpServer = createServer(app)

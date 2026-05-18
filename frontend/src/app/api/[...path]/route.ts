@@ -12,7 +12,10 @@ async function handler(req: NextRequest) {
     const targetUrl = `${GATEWAY}${targetPath}${req.nextUrl.search}`
 
     const headers = new Headers(req.headers)
-    headers.set('Content-Type', 'application/json')
+    if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json')
+    }
+
     if (accessToken) {
         headers.set('Authorization', `Bearer ${accessToken}`)
     }
