@@ -1,10 +1,13 @@
 import 'dotenv/config'
 import express from 'express'
+import { createServer } from 'http'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 
 import { authenticateToken } from './middleware/auth-middleware.js'
+import { initSocketProxy } from './socket-proxy.js'
+import { verifyInternalKey } from './middleware/internal.js'
 
 const getProxyMidleware = (target, options = {}) => {
     return createProxyMiddleware({
@@ -32,6 +35,33 @@ app.use(
     })
 )
 app.use(cookieParser())
+
+app.post(
+    '/internal/tooth-event',
+    express.json(),
+    verifyInternalKey,
+    async (req, res) => {
+        const { patientId, event, tooth, toothId, toothNumber } = req.body
+
+        if (!patientId || !event) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    error: 'patientId y event son requeridos',
+                })
+        }
+
+        try {
+            const { emitToothEvent } = await import('./socket-proxy.js')
+            emitToothEvent(patientId, { event, tooth, toothId, toothNumber })
+            res.sendStatus(200)
+        } catch (err) {
+            console.error('[WS] Error emitiendo evento:', err)
+            res.sendStatus(500)
+        }
+    }
+)
 
 app.get('/', (req, res) => {
     res.json({ message: 'API Gateway funcionando' })
@@ -99,9 +129,13 @@ app.use(
     getProxyMidleware('http://inventory-service:3005')
 )
 
+const httpServer = createServer(app)
+
+initSocketProxy(httpServer)
+
 const PORT = process.env.PORT
 const HOST = process.env.HOST
 
-app.listen(PORT, HOST, () => {
+httpServer.listen(PORT, HOST, () => {
     console.log(`API Gateway corriendo en puerto ${PORT}`)
 })

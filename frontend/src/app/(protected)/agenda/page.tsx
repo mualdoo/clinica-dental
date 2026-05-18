@@ -780,7 +780,7 @@ export default function AgendaPage() {
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1.5">
                                             <Label className="text-xs">
-                                                Desde (Opcional)
+                                                Desde
                                             </Label>
                                             <input
                                                 type="date"
@@ -795,7 +795,7 @@ export default function AgendaPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label className="text-xs">
-                                                Hasta (Opcional)
+                                                Hasta
                                             </Label>
                                             <input
                                                 type="date"

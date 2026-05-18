@@ -19,3 +19,7 @@ export const authenticateToken = (req, res, next) => {
         next()
     })
 }
+
+export const verifyJwt = (token) => {
+    jwt.verify(token, process.env.JWT_ACCESS_SECRET)
+}
