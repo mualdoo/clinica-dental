@@ -7,7 +7,6 @@ import { itemController } from '../controllers/item-controller.js'
 import { movementController } from '../controllers/movement-controller.js'
 import { orderController } from '../controllers/order-controller.js'
 
-// TODO: Agregar dentista
 // Supplier
 router.get(
     '/supplier',
@@ -44,12 +43,12 @@ router.post(
 
 router.get(
     '/item',
-    authorize(['admin', 'receptionist']),
+    authorize(['admin', 'receptionist', 'dentist']),
     itemController.findAll
 )
 router.get(
     '/item/:id',
-    authorize(['admin', 'receptionist']),
+    authorize(['admin', 'receptionist', 'dentist']),
     itemController.findById
 )
 router.patch(
@@ -66,7 +65,7 @@ router.delete(
 // Stock Movement
 router.post(
     '/item/:id/movement',
-    authorize(['admin', 'receptionist']),
+    authorize(['admin', 'receptionist', 'dentist']),
     movementController.create
 )
 

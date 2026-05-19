@@ -16,8 +16,19 @@ function formatDate(date) {
     }).format(date)
 }
 
+function evaluateEmail(data) {
+    const sendEmail = !data.email.includes('@falso.com')
+
+    if (!sendEmail) {
+        console.log('Simulación de correo enviado, con información: ', data)
+    }
+
+    return sendEmail
+}
+
 export const sendAccountVerificationEmail = async (data) => {
     try {
+        if (!evaluateEmail(data)) return true
         const htmlContent = await renderTemplate('verificar-cuenta', {
             fullName: data.fullName,
             link: `${process.env.FRONTEND_URL}/verificar-cuenta?token=${data.token}`,
@@ -41,6 +52,7 @@ export const sendAccountVerificationEmail = async (data) => {
 
 export const sendAppointmentConfirmationEmail = async (data) => {
     try {
+        if (!evaluateEmail(data)) return true
         const htmlContent = await renderTemplate('confirmacion-cita', {
             patientFullName: data.patientName,
             dentistFullName: data.dentistName,
@@ -66,6 +78,7 @@ export const sendAppointmentConfirmationEmail = async (data) => {
 
 export const sendAppointmentReminderEmail = async (data) => {
     try {
+        if (!evaluateEmail(data)) return true
         const htmlContent = await renderTemplate('recordatorio-cita', {
             patientFullName: data.patientName,
             dentistFullName: data.dentistName,

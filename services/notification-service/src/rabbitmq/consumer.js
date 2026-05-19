@@ -18,8 +18,7 @@ export default async function startConsumers() {
             'patient_account_created_exchange',
             'patient_account_email',
             async (data) => {
-                // return await sendAccountVerificationEmail(data) // Change
-                console.log('patient_account_created Email sent', data)
+                return await sendAccountVerificationEmail(data)
             }
         )
 
@@ -29,8 +28,7 @@ export default async function startConsumers() {
             'appointment_created_exchange',
             'appointment_created_queue',
             async (data) => {
-                // return await sendAppointmentConfirmationEmail(data); // Change
-                console.log('appointment_created Email sent', data)
+                return await sendAppointmentConfirmationEmail(data)
             }
         )
 

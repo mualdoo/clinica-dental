@@ -332,7 +332,7 @@ function NewPaymentModal({
                                 type="number"
                                 step="0.01"
                                 min={0.01}
-                                {...register('amount')}
+                                {...register('amount', { valueAsNumber: true })}
                                 className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                             />
                             {errors.amount && (
@@ -612,7 +612,7 @@ function QuotePaymentsSection({ quote }: { quote: Quote }) {
     const payments: Payment[] = data?.pages.flatMap((p) => p.data.data) ?? []
     const totalPaid = payments
         .filter((p) => p.status === 'completed')
-        .reduce((acc, p) => acc + p.amount, 0)
+        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0)
     const remaining = quote.total - totalPaid
 
     const canPay = quote.status === 'accepted' && remaining > 0

@@ -27,6 +27,10 @@ class OrderService extends BaseService {
 
         const result = await instance.update(data)
 
+        if (result.status !== 'received') {
+            return result
+        }
+
         await movementService.create({
             itemId: instance.itemId,
             type: 'compra',

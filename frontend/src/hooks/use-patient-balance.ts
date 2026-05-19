@@ -8,12 +8,6 @@ export function usePatientBalance(patientId: string) {
     const { data: quotesData, isLoading: quotesLoading } =
         useQuotesByPatient(patientId)
 
-    // Todos los pagos filtrados por patientId — el backend devuelve
-    // solo los del paciente activo gracias a x-active-patient-id
-    // const { data: paymentsData, isLoading: paymentsLoading } = usePayments({
-    //     status: 'completed',
-    // })
-
     const quotes = quotesData?.pages.flatMap((p) => p.data.data) ?? []
     const payments = quotes.flatMap((p) => p.Payments) ?? []
 
@@ -22,7 +16,8 @@ export function usePatientBalance(patientId: string) {
     // Suma pagos completados por quoteId
     const paidByQuote = useMemo(() => {
         return payments.reduce<Record<string, number>>((acc, payment) => {
-            acc[payment.quoteId] = (acc[payment.quoteId] ?? 0) + payment.amount
+            const amount = Number(payment.amount) || 0
+            acc[payment.quoteId] = (acc[payment.quoteId] ?? 0) + amount
             return acc
         }, {})
     }, [payments])

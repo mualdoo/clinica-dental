@@ -49,6 +49,7 @@ export interface Payment {
     reference: string
     status: PaymentStatus
     quoteId: string
+    createdAt: string
 }
 
 export interface PatientItem {
