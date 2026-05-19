@@ -204,9 +204,20 @@ function CorteDeCajaModal({
     const refunded = payments.filter((p) => p.status === 'refunded')
     const pending = payments.filter((p) => p.status === 'pending')
 
-    const totalCobrado = completed.reduce((a, p) => a + p.amount, 0)
-    const totalReembolsos = refunded.reduce((a, p) => a + p.amount, 0)
-    const totalPendiente = pending.reduce((a, p) => a + p.amount, 0)
+    // Convertir p.amount a número antes de sumarlo al acumulador (a)
+    const totalCobrado = completed.reduce(
+        (a, p) => a + (Number(p.amount) || 0),
+        0
+    )
+    const totalReembolsos = refunded.reduce(
+        (a, p) => a + (Number(p.amount) || 0),
+        0
+    )
+    const totalPendiente = pending.reduce(
+        (a, p) => a + (Number(p.amount) || 0),
+        0
+    )
+
     const neto = totalCobrado - totalReembolsos
 
     // Desglose por método — solo pagos completados
@@ -215,7 +226,10 @@ function CorteDeCajaModal({
             const methodPayments = completed.filter(
                 (p) => p.method === (method as PaymentMethod)
             )
-            const total = methodPayments.reduce((a, p) => a + p.amount, 0)
+            const total = methodPayments.reduce(
+                (a, p) => a + (Number(p.amount) || 0),
+                0
+            )
             return {
                 method: method as PaymentMethod,
                 cfg,
@@ -497,8 +511,8 @@ export default function CorteCajaPage() {
         )
         const refunded = paymentsInRange.filter((p) => p.status === 'refunded')
         return {
-            total: completed.reduce((a, p) => a + p.amount, 0),
-            refunded: refunded.reduce((a, p) => a + p.amount, 0),
+            total: completed.reduce((a, p) => a + (Number(p.amount) || 0), 0),
+            refunded: refunded.reduce((a, p) => a + (Number(p.amount) || 0), 0),
             count: completed.length,
         }
     }, [paymentsInRange])
@@ -606,7 +620,7 @@ export default function CorteCajaPage() {
                         size="sm"
                         className="gap-1.5"
                         onClick={() => setCorteOpen(true)}
-                        disabled={paymentsInRange.length === 0}
+                        // disabled={paymentsInRange.length === 0}
                     >
                         <BadgeDollarSign className="h-3.5 w-3.5" />
                         Ver corte

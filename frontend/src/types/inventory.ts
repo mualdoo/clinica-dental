@@ -83,7 +83,6 @@ export interface CreateItemDto {
     name: string
     unit: ItemUnit
     unitCost: number
-    stockCurrent: number
     stockMinimum: number
     location: string
     expiryDate?: string
@@ -102,5 +101,5 @@ export interface CreateOrderDto {
 
 // Solo se puede cambiar el status y nunca desde "received"
 export interface PatchOrderStatusDto {
-    status: Exclude<OrderStatus, 'received'>
+    status: OrderStatus
 }

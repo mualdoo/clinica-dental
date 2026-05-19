@@ -177,14 +177,16 @@ function AccountWidget({ patientId }: { patientId: string }) {
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
                                 Desglose
                             </p>
-                            {quoteBalances.map(({ quote, paid, pending }) => (
-                                <QuoteBalanceRow
-                                    key={quote.id}
-                                    quote={quote}
-                                    paid={paid}
-                                    pending={pending}
-                                />
-                            ))}
+                            {quoteBalances
+                                .slice(0, 3)
+                                .map(({ quote, paid, pending }) => (
+                                    <QuoteBalanceRow
+                                        key={quote.id}
+                                        quote={quote}
+                                        paid={paid}
+                                        pending={pending}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>

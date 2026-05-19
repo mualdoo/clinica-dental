@@ -130,10 +130,16 @@ export function useItem(id: string) {
     })
 }
 
-export function useCreateItem(supplierId: string) {
+export function useCreateItem() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: (dto: CreateItemDto) => itemService.create(supplierId, dto),
+        mutationFn: ({
+            supplierId,
+            dto,
+        }: {
+            supplierId: string
+            dto: CreateItemDto
+        }) => itemService.create(supplierId, dto),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['items'] })
             toast.success('Artículo creado')
@@ -255,16 +261,13 @@ export function usePatchOrderStatus() {
 
 // ─── Helper: transiciones válidas de status ───────────────────────────────────
 // Útil para deshabilitar botones en la UI según el estado actual
-export function getValidTransitions(
-    current: OrderStatus
-): Exclude<OrderStatus, 'received'>[] {
-    const transitions: Record<OrderStatus, Exclude<OrderStatus, 'received'>[]> =
-        {
-            draft: ['sent', 'cancelled'],
-            sent: ['confirmed', 'cancelled'],
-            confirmed: ['cancelled'],
-            received: [], // inmutable
-            cancelled: [], // inmutable
-        }
+export function getValidTransitions(current: OrderStatus): OrderStatus[] {
+    const transitions: Record<OrderStatus, OrderStatus[]> = {
+        draft: ['received', 'sent', 'cancelled'],
+        sent: ['received', 'confirmed', 'cancelled'],
+        confirmed: ['received', 'cancelled'],
+        received: [], // inmutable
+        cancelled: [], // inmutable
+    }
     return transitions[current] ?? []
 }

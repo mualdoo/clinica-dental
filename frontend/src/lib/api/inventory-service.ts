@@ -35,25 +35,26 @@ function toQS(params: Record<string, unknown>): string {
 export const supplierService = {
     getAll: (params: SupplierParams = {}) =>
         apiClient<PaginatedResponse<Supplier>>(
-            `/supplier${toQS({ page: 1, limit: 10, ...params })}`
+            `/inventory/supplier${toQS({ page: 1, limit: 10, ...params })}`
         ),
 
-    getById: (id: string) => apiClient<Single<Supplier>>(`/supplier/${id}`),
+    getById: (id: string) =>
+        apiClient<Single<Supplier>>(`/inventory/supplier/${id}`),
 
     create: (dto: CreateSupplierDto) =>
-        apiClient<Single<Supplier>>('/supplier', {
+        apiClient<Single<Supplier>>('/inventory/supplier', {
             method: 'POST',
             body: JSON.stringify(dto),
         }),
 
     patch: (id: string, dto: PatchSupplierDto) =>
-        apiClient<Single<Supplier>>(`/supplier/${id}`, {
+        apiClient<Single<Supplier>>(`/inventory/supplier/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(dto),
         }),
 
     remove: (id: string) =>
-        apiClient<{ success: true; data: null }>(`/supplier/${id}`, {
+        apiClient<{ success: true; data: null }>(`/inventory/supplier/${id}`, {
             method: 'DELETE',
         }),
 }
@@ -62,26 +63,26 @@ export const supplierService = {
 export const itemService = {
     getAll: (params: ItemParams = {}) =>
         apiClient<PaginatedResponse<Item>>(
-            `/item${toQS({ page: 1, limit: 10, ...params })}`
+            `/inventory/item${toQS({ page: 1, limit: 10, ...params })}`
         ),
 
-    getById: (id: string) => apiClient<Single<Item>>(`/item/${id}`),
+    getById: (id: string) => apiClient<Single<Item>>(`/inventory/item/${id}`),
 
-    // POST /supplier/:id/item
+    // POST /inventory/supplier/:id/item
     create: (supplierId: string, dto: CreateItemDto) =>
-        apiClient<Single<Item>>(`/supplier/${supplierId}/item`, {
+        apiClient<Single<Item>>(`/inventory/supplier/${supplierId}/item`, {
             method: 'POST',
             body: JSON.stringify(dto),
         }),
 
     patch: (id: string, dto: PatchItemDto) =>
-        apiClient<Single<Item>>(`/item/${id}`, {
+        apiClient<Single<Item>>(`/inventory/item/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(dto),
         }),
 
     remove: (id: string) =>
-        apiClient<{ success: true; data: null }>(`/item/${id}`, {
+        apiClient<{ success: true; data: null }>(`/inventory/item/${id}`, {
             method: 'DELETE',
         }),
 }
@@ -90,12 +91,12 @@ export const itemService = {
 export const movementService = {
     getAll: (params: MovementParams = {}) =>
         apiClient<PaginatedResponse<StockMovement>>(
-            `/movement${toQS({ page: 1, limit: 10, ...params })}`
+            `/inventory/movement${toQS({ page: 1, limit: 10, ...params })}`
         ),
 
     // POST /item/:id/movement
     create: (itemId: string, dto: CreateMovementDto) =>
-        apiClient<Single<StockMovement>>(`/item/${itemId}/movement`, {
+        apiClient<Single<StockMovement>>(`/inventory/item/${itemId}/movement`, {
             method: 'POST',
             body: JSON.stringify(dto),
         }),
@@ -107,21 +108,22 @@ export const movementService = {
 export const orderService = {
     getAll: (params: OrderParams = {}) =>
         apiClient<PaginatedResponse<PurchaseOrder>>(
-            `/order${toQS({ page: 1, limit: 10, ...params })}`
+            `/inventory/order${toQS({ page: 1, limit: 10, ...params })}`
         ),
 
-    getById: (id: string) => apiClient<Single<PurchaseOrder>>(`/order/${id}`),
+    getById: (id: string) =>
+        apiClient<Single<PurchaseOrder>>(`/inventory/order/${id}`),
 
     // POST /item/:id/order
     create: (itemId: string, dto: CreateOrderDto) =>
-        apiClient<Single<PurchaseOrder>>(`/item/${itemId}/order`, {
+        apiClient<Single<PurchaseOrder>>(`/inventory/item/${itemId}/order`, {
             method: 'POST',
             body: JSON.stringify(dto),
         }),
 
     // PATCH /order/:id/status — solo cambia el status, nunca desde "received"
     patchStatus: (id: string, dto: PatchOrderStatusDto) =>
-        apiClient<Single<PurchaseOrder>>(`/order/${id}/status`, {
+        apiClient<Single<PurchaseOrder>>(`/inventory/order/${id}/status`, {
             method: 'PATCH',
             body: JSON.stringify(dto),
         }),

@@ -612,7 +612,7 @@ function QuotePaymentsSection({ quote }: { quote: Quote }) {
     const payments: Payment[] = data?.pages.flatMap((p) => p.data.data) ?? []
     const totalPaid = payments
         .filter((p) => p.status === 'completed')
-        .reduce((acc, p) => acc + p.amount, 0)
+        .reduce((acc, p) => acc + (Number(p.amount) || 0), 0)
     const remaining = quote.total - totalPaid
 
     const canPay = quote.status === 'accepted' && remaining > 0
