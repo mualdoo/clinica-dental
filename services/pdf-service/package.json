@@ -1,0 +1,17 @@
+{
+  "name": "puppeteer-pdf-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "puppeteer": "^25.0.4"
+  }
+}

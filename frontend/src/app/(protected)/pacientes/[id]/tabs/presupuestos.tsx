@@ -36,6 +36,7 @@ import {
     useCreateQuoteItem,
     useDeleteQuoteItem,
     useCreatePayment,
+    useGenerateQuotePdf,
 } from '@/hooks/use-billing'
 import { useTreatments } from '@/hooks/use-billing'
 import type {
@@ -46,6 +47,12 @@ import type {
     PaymentStatus,
     PaymentMethod,
 } from '@/types/billing'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 // ─── Configs visuales ─────────────────────────────────────────────────────────
 const QUOTE_STATUS_CFG: Record<
@@ -741,6 +748,8 @@ function QuoteCard({ quote }: { quote: Quote }) {
     const [activeTab, setActiveTab] = useState<'items' | 'payments'>('items')
     const { mutate: patchQuote } = usePatchQuote()
     const { mutate: deleteQuote } = useDeleteQuote()
+    const { mutate: generatePdf, isPending: generatingPdf } =
+        useGenerateQuotePdf()
 
     const isDraft = quote.status === 'draft'
 
@@ -782,15 +791,50 @@ function QuoteCard({ quote }: { quote: Quote }) {
                             Marcar enviado
                         </button>
                     )}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation() /* placeholder PDF */
-                        }}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        title="Exportar PDF"
-                    >
-                        <FileDown className="h-3.5 w-3.5" />
-                    </button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={generatingPdf}
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                                title="Exportar PDF"
+                            >
+                                {generatingPdf ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                    <FileDown className="h-3.5 w-3.5" />
+                                )}
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                className="gap-2 cursor-pointer text-xs"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    generatePdf({
+                                        quoteId: quote.id,
+                                        createPatientFile: false,
+                                    })
+                                }}
+                            >
+                                <FileDown className="h-3.5 w-3.5" />
+                                Solo descargar PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="gap-2 cursor-pointer text-xs"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    generatePdf({
+                                        quoteId: quote.id,
+                                        createPatientFile: true,
+                                    })
+                                }}
+                            >
+                                <FileDown className="h-3.5 w-3.5" />
+                                Descargar y guardar en expediente
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     {isDraft && (
                         <button
                             onClick={(e) => {

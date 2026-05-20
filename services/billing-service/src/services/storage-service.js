@@ -1,28 +1,18 @@
 import axios from 'axios'
 
-// Tu URL local para el entorno de desarrollo
 const STORAGE_SERVICE_URL = process.env.STORAGE_SERVICE_URL
 
-/**
- * Sube un archivo desde el navegador web al microservicio.
- *
- * @param {File} fileObject - El objeto File nativo del navegador (obtenido de un <input type="file">).
- * @returns {Promise<string>} La URL pública del archivo subido.
- */
-export const uploadFile = async (fileObject) => {
+export const uploadFile = async (pdfBlob, quoteId) => {
     try {
         const formData = new FormData()
 
-        // Cambio clave: En la web pasas el objeto File directamente,
-        // sin necesidad de especificar manualmente uri, type o name.
-        formData.append('file', fileObject)
+        formData.append('file', pdfBlob, `presupuesto-${quoteId}.pdf`)
 
         const response = await axios.post(
             `${STORAGE_SERVICE_URL}/upload`,
             formData,
             {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
                     'x-internal-key': process.env.INTERNAL_SERVICE_KEY,
                 },
             }

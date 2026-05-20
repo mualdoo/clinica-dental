@@ -24,8 +24,28 @@ export const patientExists = async (patientId) => {
 
         if (!response.data.success) return false
 
-        return !!response.data.data
+        return response.data.data
     } catch (error) {
+        return false
+    }
+}
+
+export const createPatientPdf = async (patientId, dto) => {
+    try {
+        console.log('dto__====', patientId, dto)
+
+        const response = await axios.post(
+            `${process.env.PATIENT_SERVICE_URL}/internal/${patientId}/pdf`,
+            dto,
+            { headers: { 'x-internal-key': process.env.INTERNAL_SERVICE_KEY } }
+        )
+
+        if (!response.data.success) return false
+
+        return response.data.data
+    } catch (error) {
+        console.log(error)
+
         return false
     }
 }

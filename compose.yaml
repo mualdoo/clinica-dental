@@ -176,6 +176,17 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  pdf-service:
+    build:
+      context: ./services/pdf-service
+    env_file:
+      - ./services/pdf-service/.env
+    volumes:
+      - ./services/pdf-service:/app
+      - /app/node_modules
+    networks:
+      - dental-network
+
   storage-service:
     build:
       context: ./services/storage-service
