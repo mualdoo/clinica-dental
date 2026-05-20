@@ -112,4 +112,11 @@ router.get(
     paymentController.findById
 )
 
+// Generate pdf
+router.post(
+    '/quote/:id/generate-pdf',
+    authorize(['admin', 'receptionist', 'dentist']),
+    quoteController.generatePdf
+)
+
 export default router

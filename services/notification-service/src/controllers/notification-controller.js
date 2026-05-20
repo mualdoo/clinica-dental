@@ -4,8 +4,6 @@ import { sendAppointmentReminderEmail } from '../services/email-service.js'
 import { setAppointmentSent } from '../services/agenda-service.js'
 
 export const send = catchAsync(async (req, res) => {
-    console.log('hola, llega aquí??', req.body)
-
     const patient = await patientExists(req.body.patientId)
     if (!patient) throw new AppError('Patient not found')
 

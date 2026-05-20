@@ -182,5 +182,10 @@ router.get(
     verifyInternalKey,
     patientController.patientExists
 )
+router.post(
+    '/internal/:id/pdf',
+    verifyInternalKey,
+    patientFileController.internalCreate
+)
 
 export default router

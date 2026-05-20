@@ -183,6 +183,24 @@ export function useDeleteQuote() {
     })
 }
 
+export function useGenerateQuotePdf() {
+    return useMutation({
+        mutationFn: ({
+            quoteId,
+            createPatientFile,
+        }: {
+            quoteId: string
+            createPatientFile: boolean
+        }) => quoteService.generatePdf(quoteId, createPatientFile),
+        onSuccess: (res) => {
+            // Abre el PDF en una nueva pestaña automáticamente
+            window.open(res.data, '_blank', 'noopener,noreferrer')
+            toast.success('PDF generado correctamente')
+        },
+        onError: (e: Error) => toast.error(e.message),
+    })
+}
+
 // ─── Quote Items ──────────────────────────────────────────────────────────────
 // Sin paginación — los items de un presupuesto son pocos y se necesitan todos
 export function useQuoteItems(quoteId: string) {

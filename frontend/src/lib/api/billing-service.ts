@@ -86,6 +86,15 @@ export const quoteService = {
 
     remove: (id: string) =>
         apiClient<Deleted>(`/billing/quote/${id}`, { method: 'DELETE' }),
+    // Generar pdf
+    generatePdf: (quoteId: string, createPatientFile: boolean) =>
+        apiClient<{ success: true; data: string }>(
+            `/billing/quote/${quoteId}/generate-pdf`,
+            {
+                method: 'POST',
+                body: JSON.stringify({ createPatientFile }),
+            }
+        ),
 }
 
 // ─── QuoteItem ────────────────────────────────────────────────────────────────

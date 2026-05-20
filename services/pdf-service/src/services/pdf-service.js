@@ -41,7 +41,6 @@ function formatDate(dateString) {
     })
 }
 
-// Reemplazar module.exports por export
 export async function generateQuotePDF(data) {
     const browser = await getBrowser()
     const page = await browser.newPage()
