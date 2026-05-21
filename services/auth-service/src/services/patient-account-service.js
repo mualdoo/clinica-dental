@@ -1,27 +1,28 @@
 import amqp from 'amqplib'
-import { User, PatientToken } from '../models/index.js'
+import { User, ActivationToken } from '../models/index.js'
 import { publishEvent } from '@mualdoo/shared'
 
 const createPatientAccount = async (data) => {
-    const { id, email, name, lastName } = data
+    const { id, email, name, lastName, role } = data
     const user = await User.create({
         id,
         email,
         name,
         lastName,
-        role: 'patient',
+        role,
     })
 
-    const patientToken = await PatientToken.create({ patientId: user.id })
+    const activationToken = await ActivationToken.create({ userId: user.id })
 
     await publishEvent(
         amqp,
-        'patient_account_created_exchange',
+        'user_account_created_exchange',
         process.env.RABBITMQ_URL,
         {
             email: user.email,
             fullName: user.getFullName(),
-            token: patientToken.activationToken,
+            token: activationToken.activationToken,
+            role,
         }
     )
 }

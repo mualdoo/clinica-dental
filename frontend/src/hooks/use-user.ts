@@ -9,7 +9,7 @@ export const userKeys = {
     dentists: () => ['users', 'dentists'] as const,
 }
 
-export function useUsers(role: UserRole) {
+export function useUsers(role: UserRole | null) {
     return useQuery({
         queryKey: userKeys.dentists(),
         queryFn: () => authService.listUsers(role),

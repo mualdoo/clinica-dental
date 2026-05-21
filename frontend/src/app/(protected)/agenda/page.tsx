@@ -151,7 +151,6 @@ const STATUS_CONFIG: Record<
 
 // ─── Helper Dinámico para "En espera" ─────────────────────────────────────────
 function getDisplayStatus(appt: Appointment) {
-    console.log(new Date(appt.startTime), 'ayudaaaa', new Date())
     if (appt.status === 'scheduled' && new Date() > new Date(appt.startTime)) {
         return {
             label: 'En espera',

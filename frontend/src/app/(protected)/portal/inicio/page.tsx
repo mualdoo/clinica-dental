@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAppointments } from '@/hooks/use-agenda'
 import { useHealthAlerts, useClinicalNotes } from '@/hooks/use-patient'
-// import { useQuotesByPatient } from '@/hooks/use-billing'
 import { useAuthStore } from '@/store/auth-store'
 import type { AppointmentStatus } from '@/types/agenda'
 import type { HealthAlertType } from '@/types/patient'
@@ -44,13 +43,6 @@ function formatMoney(n: number) {
     return `$${n.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`
 }
 
-const ALERT_TYPE_LABELS: Record<HealthAlertType, string> = {
-    allergy: 'Alergia',
-    condition: 'Condición',
-    medication: 'Medicamento',
-    other: 'Otro',
-}
-
 const STATUS_CFG: Record<
     AppointmentStatus,
     { label: string; className: string }
@@ -65,11 +57,15 @@ const STATUS_CFG: Record<
     },
     missed: {
         label: 'Faltó',
-        className: 'bg-amber-100 text-amber-700 border-amber-200',
+        className: 'bg-rose-100 text-rose-700 border-rose-200',
     },
     cancelled: {
         label: 'Cancelada',
         className: 'bg-rose-100 text-rose-700 border-rose-200',
+    },
+    ongoing: {
+        label: 'Faltó',
+        className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     },
 }
 
@@ -221,7 +217,7 @@ export default function PortalPage() {
                                 className="flex items-start gap-2 text-xs text-rose-700 dark:text-rose-300"
                             >
                                 <span className="font-bold uppercase tracking-wide shrink-0 mt-0.5">
-                                    {ALERT_TYPE_LABELS[alert.type]}:
+                                    {alert.type}:
                                 </span>
                                 <span>{alert.content}</span>
                             </div>
@@ -277,7 +273,7 @@ export default function PortalPage() {
             <SectionCard
                 title="Estado de Cuenta"
                 icon={<CreditCard className="h-4 w-4 text-primary" />}
-                href="/portal/citas"
+                href="/portal/presupuestos"
                 linkLabel="Ver detalle"
                 isLoading={!isMounted || isLoading}
             >

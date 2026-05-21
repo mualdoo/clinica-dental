@@ -3,6 +3,7 @@ import { setupConsumer } from '@mualdoo/shared'
 import {
     sendAccountVerificationEmail,
     sendAppointmentConfirmationEmail,
+    sendStaffAccountVerificationEmail,
 } from '../services/email-service.js'
 
 export default async function startConsumers() {
@@ -15,10 +16,14 @@ export default async function startConsumers() {
         // Consumer after creating a patient account (by system)
         await setupConsumer(
             channel,
-            'patient_account_created_exchange',
+            'user_account_created_exchange',
             'patient_account_email',
             async (data) => {
-                return await sendAccountVerificationEmail(data)
+                if (data.role === 'patient') {
+                    return await sendAccountVerificationEmail(data)
+                } else {
+                    return await sendStaffAccountVerificationEmail(data)
+                }
             }
         )
 

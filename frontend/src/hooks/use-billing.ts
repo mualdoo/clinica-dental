@@ -217,6 +217,8 @@ export function useCreateQuoteItem(quoteId: string) {
         mutationFn: (dto: CreateQuoteItemDto) =>
             quoteItemService.create(quoteId, dto),
         onSuccess: () => {
+            console.log('hola, jala????')
+
             qc.invalidateQueries({ queryKey: billingKeys.quoteItems(quoteId) })
             qc.invalidateQueries({ queryKey: billingKeys.quote(quoteId) }) // el total puede cambiar
         },

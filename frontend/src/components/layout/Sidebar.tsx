@@ -3,11 +3,26 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronLeft, ChevronRight, LogOut, Sun } from 'lucide-react'
+import {
+    Menu,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    LogOut,
+    Sun,
+    Moon,
+} from 'lucide-react'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { getNavItems } from '@/config/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '../theme-toggle'
+import { useTheme } from 'next-themes'
 
 // ─── Tooltip simple para iconos colapsados ────────────────────────────────────
 function IconTooltip({
@@ -18,23 +33,32 @@ function IconTooltip({
     children: React.ReactNode
 }) {
     return (
-        <div className="relative group/tip flex items-center">
-            {children}
-            <div className="pointer-events-none absolute left-full ml-2 z-50 hidden group-hover/tip:flex items-center">
-                <div className="rounded-md bg-popover border border-border px-2 py-1 text-xs font-medium text-popover-foreground shadow-md whitespace-nowrap">
-                    {label}
-                </div>
-            </div>
-        </div>
+        <TooltipProvider delayDuration={0}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    {/* El w-full asegura que el botón siga centrado como arreglamos antes */}
+                    <div className="w-full">{children}</div>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={14}>
+                    <p className="text-xs font-medium">{label}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     )
 }
 
 // ─── Sidebar (desktop) ────────────────────────────────────────────────────────
 function DesktopSidebar() {
-    const [collapsed, setCollapsed] = useState(false)
+    const [collapsed, setCollapsed] = useState(true)
+    const [mounted, setMounted] = useState(false)
     const pathname = usePathname()
     const { user, logout } = useAuth()
+    const { theme, setTheme } = useTheme()
     const navItems = user ? getNavItems(user.role) : []
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     return (
         <aside
@@ -83,7 +107,7 @@ function DesktopSidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                'flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors',
+                                'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors',
                                 active
                                     ? 'bg-primary/10 text-primary'
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -111,17 +135,44 @@ function DesktopSidebar() {
             <div className="shrink-0 border-t border-border p-2 flex flex-col gap-0.5">
                 {/* Modo claro/oscuro */}
                 {collapsed ? (
-                    <IconTooltip label="Cambiar tema">
+                    <IconTooltip
+                        label={
+                            mounted && theme === 'dark'
+                                ? 'Modo claro'
+                                : 'Modo oscuro'
+                        }
+                    >
                         <button
-                            className={cn(
-                                'flex w-full items-center justify-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
-                            )}
+                            onClick={() =>
+                                setTheme(theme === 'dark' ? 'light' : 'dark')
+                            }
+                            className="flex w-full items-center justify-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                         >
-                            <Sun className="h-4 w-4 shrink-0" />
+                            {mounted && theme === 'dark' ? (
+                                <Moon className="h-4 w-4 shrink-0" />
+                            ) : (
+                                <Sun className="h-4 w-4 shrink-0" />
+                            )}
                         </button>
                     </IconTooltip>
                 ) : (
-                    <ThemeToggle />
+                    <button
+                        onClick={() =>
+                            setTheme(theme === 'dark' ? 'light' : 'dark')
+                        }
+                        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    >
+                        {mounted && theme === 'dark' ? (
+                            <Moon className="h-4 w-4 shrink-0" />
+                        ) : (
+                            <Sun className="h-4 w-4 shrink-0" />
+                        )}
+                        <span>
+                            {mounted && theme === 'dark'
+                                ? 'Modo claro'
+                                : 'Modo oscuro'}
+                        </span>
+                    </button>
                 )}
 
                 {/* Cerrar sesión */}
@@ -189,9 +240,7 @@ function MobileNavbar() {
                 </span>
                 <div className="flex items-center gap-1">
                     {/* Tema */}
-                    <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted transition-colors">
-                        <Sun className="h-4 w-4" />
-                    </button>
+                    <ThemeToggle />
                     {/* Hamburguesa */}
                     <button
                         onClick={() => setOpen((o) => !o)}

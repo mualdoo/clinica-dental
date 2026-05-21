@@ -14,6 +14,7 @@ import { usePatientFiles, useCreatePatientFile } from '@/hooks/use-patient'
 import type { PatientFile, PatientFileType } from '@/types/patient'
 // Importa la función que creamos para comunicarse con el storage-service
 import { storageService } from '@/lib/api/storage-service'
+import { useAuthStore } from '@/store/auth-store'
 
 const FILE_ICONS: Record<PatientFileType, React.ReactNode> = {
     'x-ray': <ImageIcon className="h-6 w-6 text-sky-500" />,
@@ -78,6 +79,9 @@ function FileCard({ file }: { file: PatientFile }) {
 export function TabArchivos({ patientId }: { patientId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const loaderRef = useRef<HTMLDivElement>(null)
+
+    const user = useAuthStore((s) => s.user)
+    const canEdit = user?.role === 'dentist' || user?.role === 'admin'
 
     // Estado adicional para bloquear el botón mientras se sube a Supabase
     const [isUploadingToCloud, setIsUploadingToCloud] = useState(false)
@@ -148,19 +152,21 @@ export function TabArchivos({ patientId }: { patientId: string }) {
                 <p className="text-sm text-muted-foreground">
                     {files.length} archivo{files.length !== 1 ? 's' : ''}
                 </p>
-                <Button
-                    size="sm"
-                    className="gap-1.5"
-                    disabled={isBusy}
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    {isBusy ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                        <Upload className="h-3.5 w-3.5" />
-                    )}
-                    Subir archivo
-                </Button>
+                {canEdit && (
+                    <Button
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={isBusy}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        {isBusy ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <Upload className="h-3.5 w-3.5" />
+                        )}
+                        Subir archivo
+                    </Button>
+                )}
                 <input
                     ref={fileInputRef}
                     type="file"

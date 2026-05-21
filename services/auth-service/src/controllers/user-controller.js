@@ -1,19 +1,23 @@
-import { User, PatientToken } from '../models/index.js'
+import { User, ActivationToken } from '../models/index.js'
 import { generateToken } from './user-service.js'
 import { ok, fail, catchAsync, publishEvent } from '@mualdoo/shared'
 import { Op } from 'sequelize'
 import jwt from 'jsonwebtoken'
+import amqp from 'amqplib'
 
 export const verifyPatientAccount = catchAsync(async (req, res) => {
     const { token, email, password } = req.body
-    const user = await User.findOne({ where: { email }, include: PatientToken })
+    const user = await User.findOne({
+        where: { email },
+        include: ActivationToken,
+    })
 
     if (!user) return fail(res, 'User not found')
-    if (!user.PatientToken.isTokenValid(token))
+    if (!user.ActivationToken.isTokenValid(token))
         return fail(res, 'Invalid or expired token')
 
     await user.update({ password })
-    await user.PatientToken.destroy()
+    await user.ActivationToken.destroy()
 
     return ok(res, 'Account verified')
 })
@@ -60,15 +64,32 @@ const register = async (res, data, setCookies = true) => {
 }
 
 export const registerPatient = catchAsync(async (req, res) => {
-    const dataResponse = await register(res, {
+    const user = await register(res, {
         ...req.body,
         role: 'patient',
     })
-    return ok(res, dataResponse, 201)
+    return ok(res, user, 201)
 })
 
 export const registerUser = catchAsync(async (req, res) => {
     const dataResponse = await register(res, req.body, false)
+
+    const activationToken = await ActivationToken.create({
+        userId: dataResponse.user.id,
+    })
+
+    await publishEvent(
+        amqp,
+        'user_account_created_exchange',
+        process.env.RABBITMQ_URL,
+        {
+            email: dataResponse.user.email,
+            fullName: `${dataResponse.user.name} ${dataResponse.user.lastName}`,
+            token: activationToken.activationToken,
+            role: dataResponse.user.role,
+        }
+    )
+
     return ok(res, dataResponse, 201)
 })
 

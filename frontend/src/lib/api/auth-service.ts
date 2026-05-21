@@ -8,6 +8,18 @@ import type {
     UserRole,
 } from '@/types/auth'
 
+// ─── Helper: convierte un objeto de params a query string ─────────────────────
+function toQueryString(params: Record<string, unknown>): string {
+    const query = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(
+            ([k, v]) =>
+                `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`
+        )
+        .join('&')
+    return query ? `?${query}` : ''
+}
+
 export const authService = {
     login: (payload: LoginPayload) =>
         apiClient<AuthResponse>('/auth/login', {
@@ -30,8 +42,10 @@ export const authService = {
         apiClient<PaginatedResponse<User>>(
             `/auth/dentist/search?key=${encodeURIComponent(query)}`
         ),
-    listUsers: (role: UserRole) =>
-        apiClient<PaginatedResponse<User>>(`/auth/user?role=${role}`),
+    listUsers: (role: UserRole | null) => {
+        const qs = toQueryString({ role })
+        return apiClient<PaginatedResponse<User>>(`/auth/user${qs}`)
+    },
     registerUser: (payload: RegisterPayload) =>
         apiClient<AuthResponse>('/auth/admin/register-user', {
             method: 'POST',

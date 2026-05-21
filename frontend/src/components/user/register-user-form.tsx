@@ -27,7 +27,6 @@ interface RegisterUserFormProps {
 
 const EMPTY: RegisterPayload = {
     email: '',
-    password: '',
     name: '',
     lastName: '',
     role: 'dentist',
@@ -146,42 +145,6 @@ export function RegisterUserForm({
                     autoComplete="email"
                     className={errors.email ? 'border-destructive' : ''}
                 />
-            </Field>
-
-            <Field
-                id="password"
-                label="Contraseña"
-                required
-                error={errors.password?.message}
-            >
-                <div className="relative">
-                    <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        {...register('password', {
-                            required: 'La contraseña es requerida',
-                            minLength: {
-                                value: 8,
-                                message: 'Mínimo 8 caracteres',
-                            },
-                        })}
-                        placeholder="Mínimo 8 caracteres"
-                        autoComplete="new-password"
-                        className={`pr-10 ${errors.password ? 'border-destructive' : ''}`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPw((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        tabIndex={-1}
-                    >
-                        {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                        ) : (
-                            <Eye className="h-4 w-4" />
-                        )}
-                    </button>
-                </div>
             </Field>
 
             {/* Selector de rol — oculto si hay fixedRole */}

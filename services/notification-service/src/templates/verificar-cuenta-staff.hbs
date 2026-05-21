@@ -1,0 +1,73 @@
+<html lang='es'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <title>Activación de Cuenta - Equipo</title>
+    </head>
+    <body
+        style='font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 0;'
+    >
+        <table
+            width='100%'
+            cellpadding='0'
+            cellspacing='0'
+            style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'
+        >
+            <tr>
+                <td
+                    style='background-color: #2c3e50; padding: 20px; text-align: center; color: #ffffff;'
+                >
+                    <h1 style='margin: 0; font-size: 24px;'>Acceso al Sistema de
+                        la Clínica</h1>
+                </td>
+            </tr>
+            <tr>
+                <td style='padding: 40px 30px;'>
+                    <h2 style='color: #333333; margin-top: 0;'>Hola,
+                        {{fullName}}</h2>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6;'
+                    >
+                        Tu cuenta como miembro del equipo ha sido dada de alta
+                        en nuestro sistema de gestión. Para poder iniciar sesión
+                        en tu panel de control y comenzar a utilizar las
+                        herramientas, es necesario que configures tu contraseña
+                        de acceso.
+                    </p>
+                    <p
+                        style='color: #555555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;'
+                    >
+                        Por favor, haz clic en el siguiente botón para
+                        establecer tu contraseña de forma segura:
+                    </p>
+                    <div style='text-align: center;'>
+                        <a
+                            href='{{link}}'
+                            style='display: inline-block; background-color: #2c3e50; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-size: 16px; font-weight: bold;'
+                        >
+                            Configurar mi acceso
+                        </a>
+                    </div>
+                    <p
+                        style='color: #888888; font-size: 14px; line-height: 1.5; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px;'
+                    >
+                        <strong>Aviso de seguridad:</strong>
+                        Este enlace es de uso personal, intransferible y
+                        expirará en
+                        <strong>24 horas</strong>. Si el enlace caduca, por
+                        favor contacta al administrador del sistema para generar
+                        uno nuevo.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td
+                    style='background-color: #f4f7f6; padding: 20px; text-align: center; color: #aaaaaa; font-size: 12px;'
+                >
+                    © 2026 Sistema de Gestión Dental. Uso exclusivo para
+                    personal autorizado.
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

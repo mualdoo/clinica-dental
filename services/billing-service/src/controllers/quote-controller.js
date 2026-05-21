@@ -156,10 +156,17 @@ class QuoteController extends BaseController {
     }
 
     findAll = catchAsync(async (req, res) => {
-        const { page = 1, limit = 10 } = req.query
+        const { page = 1, limit = 10, status = null } = req.query
         const user = this._getUserInHeaders(req)
 
-        const response = await this.service.findAll(user, { page, limit })
+        const filter = {}
+        if (status) filter.status = status
+
+        const response = await this.service.findAll(user, {
+            page,
+            limit,
+            filter,
+        })
         return ok(res, response)
     })
 
