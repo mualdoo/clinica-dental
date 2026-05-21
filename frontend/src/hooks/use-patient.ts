@@ -123,14 +123,14 @@ export function usePatientFiles(patientId: string) {
 
 const TOOTH_LIMIT = 100
 // ─── Teeth ────────────────────────────────────────────────────────────────────
-export function useTeeth(patientId: string) {
+export function useTeeth(
+    patientId: string,
+    params: PaginationParams = { limit: TOOTH_LIMIT }
+) {
     return useInfiniteQuery({
         queryKey: patientKeys.teeth(patientId),
         queryFn: ({ pageParam }) =>
-            toothService.getAllByPatient(patientId, {
-                page: pageParam,
-                limit: TOOTH_LIMIT,
-            }),
+            toothService.getAllByPatient(patientId, params),
         initialPageParam: 1,
         getNextPageParam: getNextPage,
         enabled: !!patientId,

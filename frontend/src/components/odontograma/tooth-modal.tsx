@@ -13,12 +13,12 @@ import {
 import type { Tooth } from '@/types/patient'
 
 const CONDITIONS: ToothCondition[] = [
-    'healthy',
-    'cavity',
-    'endodontics',
-    'crown',
-    'extraction',
-    'implant',
+    'sano',
+    'caries',
+    'endodoncia',
+    'corona',
+    'extraccion',
+    'implante',
 ]
 
 function formatDateTime(iso: string) {
@@ -42,7 +42,7 @@ function DiagnosisTab({
     onApply: (condition: ToothCondition, notes: string) => void
 }) {
     const [selected, setSelected] = useState<ToothCondition>(
-        current ? conditionFromString(current.condition) : 'healthy'
+        current ? conditionFromString(current.condition) : 'sano'
     )
     const [notes, setNotes] = useState(current?.notes ?? '')
 

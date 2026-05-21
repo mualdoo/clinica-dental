@@ -1,50 +1,52 @@
 export type ToothCondition =
-    | 'healthy'
-    | 'cavity'
-    | 'endodontics'
-    | 'crown'
-    | 'extraction'
-    | 'implant'
+    | 'sano'
+    | 'caries'
+    | 'endodoncia'
+    | 'corona'
+    | 'extraccion'
+    | 'implante'
 
 export const CONDITION_COLORS: Record<ToothCondition, string> = {
-    healthy: 'transparent',
-    cavity: '#ef4444',
-    endodontics: '#3b82f6',
-    crown: '#f59e0b',
-    extraction: '#6b7280',
-    implant: '#10b981',
+    sano: 'transparent',
+    caries: '#ef4444',
+    endodoncia: '#3b82f6',
+    corona: '#f59e0b',
+    extraccion: '#6b7280',
+    implante: '#10b981',
 }
 
 export const CONDITION_LABELS: Record<ToothCondition, string> = {
-    healthy: 'Sano',
-    cavity: 'Caries',
-    endodontics: 'Endodoncia',
-    crown: 'Corona',
-    extraction: 'Extracción',
-    implant: 'Implante',
+    sano: 'Sano',
+    caries: 'Caries',
+    endodoncia: 'Endodoncia',
+    corona: 'Corona',
+    extraccion: 'Extracción', // Aquí sí mantenemos el acento para la UI
+    implante: 'Implante',
 }
 
 export function conditionFromString(s: string): ToothCondition {
     const map: Record<string, ToothCondition> = {
-        sano: 'healthy',
-        caries: 'cavity',
-        endodoncia: 'endodontics',
-        corona: 'crown',
-        extraccion: 'extraction',
-        extracción: 'extraction',
-        implante: 'implant',
+        sano: 'sano',
+        caries: 'caries',
+        endodoncia: 'endodoncia',
+        corona: 'corona',
+        extraccion: 'extraccion',
+        extracción: 'extraccion', // Tolerancia para entradas con o sin acento
+        implante: 'implante',
     }
-    return map[s.toLowerCase()] ?? 'healthy'
+
+    // Convertimos a minúsculas para asegurar que coincida con el mapa
+    return map[s.toLowerCase()] ?? 'sano'
 }
 
 export function conditionToString(c: ToothCondition): string {
     const map: Record<ToothCondition, string> = {
-        healthy: 'sano',
-        cavity: 'caries',
-        endodontics: 'endodoncia',
-        crown: 'corona',
-        extraction: 'extracción',
-        implant: 'implante',
+        sano: 'sano',
+        caries: 'caries',
+        endodoncia: 'endodoncia',
+        corona: 'corona',
+        extraccion: 'extracción', // Retorna con acento si lo necesitas para mostrar en texto plano
+        implante: 'implante',
     }
     return map[c]
 }

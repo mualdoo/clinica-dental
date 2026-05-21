@@ -1,6 +1,7 @@
 import { Tooth } from '../models/index.js'
 import { BaseService, BaseController } from './base/base-controler.js'
 import { ok, catchAsync } from '@mualdoo/shared'
+import { Op } from 'sequelize'
 
 /**
  * Notifica al gateway para que emita el evento WS.
@@ -66,6 +67,30 @@ class ToothController extends BaseController {
     constructor() {
         super(toothService)
     }
+
+    findByPatient = catchAsync(async (req, res) => {
+        const user = this._getUserInHeaders(req)
+        const {
+            page = 1,
+            limit = 10,
+            startTime = null,
+            endTime = null,
+        } = req.query
+        const { id = null } = req.params
+        const filter = {}
+        if (startTime && endTime) {
+            filter.createdAt = {
+                [Op.between]: [startTime, endTime],
+            }
+        }
+
+        const response = await this.service.findByPatient(user, id, {
+            page,
+            limit,
+            filter,
+        })
+        return ok(res, response)
+    })
 }
 
 export const toothController = new ToothController()

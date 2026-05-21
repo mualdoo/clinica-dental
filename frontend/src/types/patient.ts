@@ -82,6 +82,8 @@ export interface Tooth {
 export interface PaginationParams {
     page?: number
     limit?: number
+    startTime?: string
+    endTime?: string
 }
 
 // ─── DTOs ─────────────────────────────────────────────────────────────────────

@@ -21,8 +21,8 @@ export function TabOdontograma({
     return (
         <Odontograma
             patientId={patientId}
-            // svgContent={DENTAL_SVG}
-            svgContent={DENTAL_SVG_BUENO}
+            svgContent={DENTAL_SVG}
+            // svgContent={DENTAL_SVG_BUENO}
             readOnly={readOnly}
         />
     )

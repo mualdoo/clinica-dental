@@ -42,6 +42,7 @@ import {
     Loader2,
     Plus,
     X,
+    Smile,
 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -50,6 +51,8 @@ import { TabOdontograma } from './tabs/odontograma'
 import { TabHistoria } from './tabs/historia'
 import { TabArchivos } from './tabs/archivos'
 import { TabPresupuestos } from './tabs/presupuestos'
+import { OngoingAppointmentDialog } from '@/components/agenda/ongoing-appointment-dialog'
+import { useAppointments } from '@/hooks/use-agenda'
 
 function calcAge(birthDate: string): number {
     return Math.floor(
@@ -411,11 +414,16 @@ export default function PacientePage({
     params: Promise<{ id: string }>
 }) {
     const [alertsDialogOpen, setAlertsDialogOpen] = useState(false)
+    const [ongoingOpen, setOngoingOpen] = useState(false)
+
     const { id } = use(params)
     const router = useRouter()
 
     const { data: patientRes, isLoading } = usePatient(id)
     const { data: alertsRes } = useHealthAlerts(id)
+
+    const { data } = useAppointments({ status: 'ongoing', patientId: id })
+    const appointment = data?.data.data.flatMap((p) => p)[0]
 
     const patient = patientRes?.data
     const alerts = alertsRes?.pages.flatMap((p) => p.data.data) ?? []
@@ -481,6 +489,19 @@ export default function PacientePage({
                                 </div>
                             </div>
                         </div>
+                        {appointment && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5 ml-auto"
+                                onClick={() => setOngoingOpen(true)}
+                            >
+                                <span
+                                    className={`h-1.5 w-1.5 rounded-full bg-emerald-500`}
+                                />
+                                Cita en curso
+                            </Button>
+                        )}
                     </div>
 
                     {/* Fila 2: alertas de salud */}
@@ -571,6 +592,11 @@ export default function PacientePage({
                     </Tabs>
                 </div>
             </div>
+            <OngoingAppointmentDialog
+                open={ongoingOpen}
+                onOpenChange={setOngoingOpen}
+                patientId={id}
+            />
         </div>
     )
 }
