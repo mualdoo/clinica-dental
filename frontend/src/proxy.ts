@@ -91,6 +91,12 @@ export function proxy(req: NextRequest) {
             )
         }
     }
+    if (
+        pathname.match(/^\/pacientes\/[^/]+/) &&
+        session?.role === 'receptionist'
+    ) {
+        return NextResponse.redirect(new URL('/pacientes', req.url))
+    }
 
     return NextResponse.next()
 }

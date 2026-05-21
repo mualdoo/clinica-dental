@@ -28,7 +28,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { usePayments } from '@/hooks/use-billing'
-import { useQuotes } from '@/hooks/use-billing'
 import type { Payment, PaymentMethod, PaymentStatus } from '@/types/billing'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -126,7 +125,10 @@ function DateRangePicker({
     function setPreset(days: number) {
         const end = new Date()
         const start = new Date()
-        start.setDate(end.getDate() - days + 1)
+
+        const daysToSubtract = days === 1 ? 0 : days
+        start.setDate(end.getDate() - daysToSubtract + 1)
+
         const f = start.toISOString().split('T')[0]
         const t = end.toISOString().split('T')[0]
         setLocalFrom(f)
@@ -499,7 +501,7 @@ export default function CorteCajaPage() {
         const start = new Date(fromDate + 'T00:00:00')
         const end = new Date(toDate + 'T23:59:59')
         return allPayments.filter((p) => {
-            const d = new Date(p.createdAt ?? p.id) // usa createdAt si lo tienes
+            const d = new Date(p.createdAt) // usa createdAt si lo tienes
             return d >= start && d <= end
         })
     }, [allPayments, fromDate, toDate])

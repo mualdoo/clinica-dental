@@ -23,7 +23,7 @@ import {
     useHealthAlerts,
     usePatchPatient,
 } from '@/hooks/use-patient'
-import type { HealthAlertType } from '@/types/patient'
+import { healthAlertTypes, type HealthAlertType } from '@/types/patient'
 
 import { useEffect, useState } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
@@ -58,31 +58,22 @@ function calcAge(birthDate: string): number {
     )
 }
 
-// ─── Tipos y constantes locales ───────────────────────────────────────────────
-
-const ALERT_TYPE_OPTIONS: { value: HealthAlertType; label: string }[] = [
-    { value: 'allergy', label: 'Alergia' },
-    { value: 'condition', label: 'Condición' },
-    { value: 'medication', label: 'Medicamento' },
-    { value: 'other', label: 'Otro' },
-]
-
 const ALERT_TYPE_COLORS: Record<HealthAlertType, string> = {
-    allergy: 'bg-rose-100 text-rose-700 border-rose-200',
-    condition: 'bg-amber-100 text-amber-700 border-amber-200',
-    medication: 'bg-violet-100 text-violet-700 border-violet-200',
-    other: 'bg-slate-100 text-slate-600 border-slate-200',
+    alergia: 'bg-rose-100 text-rose-700 border-rose-200',
+    condición: 'bg-amber-100 text-amber-700 border-amber-200',
+    medicamento: 'bg-violet-100 text-violet-700 border-violet-200',
+    otro: 'bg-slate-100 text-slate-600 border-slate-200',
 }
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 const schema = z.object({
     drafts: z.array(
         z.object({
-            type: z.enum(['allergy', 'condition', 'medication', 'other']),
+            type: z.enum(['alergia', 'condición', 'medicamento', 'otro']),
             content: z.string().min(1),
         })
     ),
-    newType: z.enum(['allergy', 'condition', 'medication', 'other']),
+    newType: z.enum(['alergia', 'condición', 'medicamento', 'otro']),
     newContent: z.string().optional(),
 })
 
@@ -117,7 +108,7 @@ export function MedicalAlertsDialog({
         resolver: zodResolver(schema),
         defaultValues: {
             drafts: [],
-            newType: 'allergy',
+            newType: 'alergia',
             newContent: '',
         },
     })
@@ -208,12 +199,7 @@ export function MedicalAlertsDialog({
                                 >
                                     <div className="flex flex-col gap-0.5 min-w-0">
                                         <span className="text-[10px] font-bold uppercase tracking-wide">
-                                            {
-                                                ALERT_TYPE_OPTIONS.find(
-                                                    (o) =>
-                                                        o.value === draft.type
-                                                )?.label
-                                            }
+                                            {draft.type}
                                         </span>
                                         <p className="text-xs">
                                             {draft.content}
@@ -251,12 +237,9 @@ export function MedicalAlertsDialog({
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {ALERT_TYPE_OPTIONS.map((o) => (
-                                                <SelectItem
-                                                    key={o.value}
-                                                    value={o.value}
-                                                >
-                                                    {o.label}
+                                            {healthAlertTypes.map((o) => (
+                                                <SelectItem key={o} value={o}>
+                                                    {o}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -332,7 +315,7 @@ export function MedicalAlertsDialog({
 function AddAlertButton({ patientId }: { patientId: string }) {
     const [open, setOpen] = useState(false)
     const { mutateAsync: createAlert } = useCreateHealthAlert(patientId)
-    const [type, setType] = useState<HealthAlertType>('allergy')
+    const [type, setType] = useState<HealthAlertType>('alergia')
     const [content, setContent] = useState('')
     const [isSaving, setIsSaving] = useState(false)
 
@@ -379,12 +362,9 @@ function AddAlertButton({ patientId }: { patientId: string }) {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {ALERT_TYPE_OPTIONS.map((o) => (
-                                        <SelectItem
-                                            key={o.value}
-                                            value={o.value}
-                                        >
-                                            {o.label}
+                                    {healthAlertTypes.map((o) => (
+                                        <SelectItem key={o} value={o}>
+                                            {o}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

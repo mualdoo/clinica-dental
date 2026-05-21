@@ -61,11 +61,12 @@ export const treatmentService = {
 // ─── Quote ────────────────────────────────────────────────────────────────────
 export const quoteService = {
     getAll: (params: QuoteParams = {}) =>
-        apiClient<PaginatedResponse<Quote>>(
+        apiClient<PaginatedResponse<PatientQuote>>(
             `/billing/quote${toQS({ page: 1, limit: 10, ...params })}`
         ),
 
-    getById: (id: string) => apiClient<Single<Quote>>(`/billing/quote/${id}`),
+    getById: (id: string) =>
+        apiClient<Single<PatientQuote>>(`/billing/quote/${id}`),
 
     getByPatient: (patientId: string, params: QuoteParams = {}) =>
         apiClient<PaginatedResponse<PatientQuote>>(

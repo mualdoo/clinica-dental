@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useSearchPatients, usePatients } from '@/hooks/use-patient'
 import type { Patient } from '@/types/patient'
+import { useAuthStore } from '@/store/auth-store'
 
 // ─── Hook de debounce ─────────────────────────────────────────────────────────
 function useDebounce(value: string, delay = 350) {
@@ -79,12 +80,22 @@ function Avatar({ name, lastName }: { name: string; lastName: string }) {
 // ─── Fila de tabla ────────────────────────────────────────────────────────────
 function PatientRow({ patient }: { patient: Patient }) {
     const router = useRouter()
+    const user = useAuthStore((s) => s.user)
+
     const age = patient.birthDate
         ? Math.floor(
               (Date.now() - new Date(patient.birthDate).getTime()) /
                   (1000 * 60 * 60 * 24 * 365.25)
           )
         : null
+
+    const handleView = () => {
+        if (user?.role === 'receptionist') {
+            router.push(`/presupuestos?patientId=${patient.id}`)
+        } else {
+            router.push(`/pacientes/${patient.id}`)
+        }
+    }
 
     return (
         <tr className="group border-b border-border/50 transition-colors hover:bg-muted/40">
@@ -139,11 +150,13 @@ function PatientRow({ patient }: { patient: Patient }) {
                     variant="ghost"
                     size="sm"
                     className="gap-1.5 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => router.push(`/pacientes/${patient.id}`)}
+                    onClick={handleView}
                 >
                     <FolderOpen className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline text-xs">
-                        Ver Expediente
+                        {user?.role === 'receptionist'
+                            ? 'Ver presupuestos'
+                            : 'Ver Expediente'}
                     </span>
                 </Button>
             </td>
@@ -252,6 +265,8 @@ function SortHeader({
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function PacientesPage() {
     const router = useRouter()
+
+    const user = useAuthStore((s) => s.user)
 
     const [input, setInput] = useState('')
     const [sortField, setSortField] = useState<SortField>('lastName')

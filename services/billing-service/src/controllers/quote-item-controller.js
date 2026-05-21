@@ -24,6 +24,7 @@ const recalculateQuoteTotal = async (quoteId, transaction = null) => {
     })
 
     let newTotal = 0
+    const newItemCount = items.length
 
     for (const item of items) {
         if (!item.treatment) continue
@@ -39,7 +40,7 @@ const recalculateQuoteTotal = async (quoteId, transaction = null) => {
     newTotal = Math.round(newTotal * 100) / 100
 
     await Quote.update(
-        { total: newTotal },
+        { total: newTotal, itemCount: newItemCount },
         { where: { id: quoteId }, transaction }
     )
 

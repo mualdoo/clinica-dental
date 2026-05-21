@@ -26,6 +26,30 @@ function evaluateEmail(data) {
     return sendEmail
 }
 
+export const sendStaffAccountVerificationEmail = async (data) => {
+    try {
+        if (!evaluateEmail(data)) return true
+        const htmlContent = await renderTemplate('verificar-cuenta-staff', {
+            fullName: data.fullName,
+            link: `${process.env.FRONTEND_URL}/verificar-cuenta?token=${data.token}`,
+        })
+
+        const { data: response, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM,
+            to: data.email,
+            subject: 'Completa tu registro - Establece tu contraseña',
+            html: htmlContent,
+        })
+
+        if (error) throw error
+
+        console.log('Correo enviado: ', response)
+        return response
+    } catch (error) {
+        console.error('Error sending email:', error.message)
+    }
+}
+
 export const sendAccountVerificationEmail = async (data) => {
     try {
         if (!evaluateEmail(data)) return true

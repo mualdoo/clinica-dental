@@ -65,18 +65,17 @@ function AddDentistDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Registrar Dentista</DialogTitle>
+                    <DialogTitle>Registrar Usuario</DialogTitle>
                     <DialogDescription>
-                        Se creará una cuenta con rol de dentista
+                        Se enviará un correo para agregar la contraseña
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-2">
                     <RegisterUserForm
-                        fixedRole="dentist"
                         isLoading={isPending}
                         onSubmit={handleSubmit}
                         onCancel={() => onOpenChange(false)}
-                        submitLabel="Registrar Dentista"
+                        submitLabel="Registrar Usuario"
                     />
                 </div>
             </DialogContent>
@@ -84,7 +83,7 @@ function AddDentistDialog({
     )
 }
 
-// ─── Tarjeta de dentista ──────────────────────────────────────────────────────
+// ─── Tarjeta de Usuario ──────────────────────────────────────────────────────
 function DentistCard({ user }: { user: User }) {
     return (
         <div className="group flex items-center gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md">
@@ -125,10 +124,11 @@ export default function DentistasPage() {
     const [showModal, setShowModal] = useState(false)
     const [search, setSearch] = useState('')
 
-    const { data, isLoading } = useUsers('dentist')
-    const dentists: User[] = data?.data.data ?? []
+    const { data, isLoading } = useUsers(null)
 
-    const filtered = dentists.filter((d) =>
+    const users: User[] = data?.data.data ?? []
+
+    const filtered = users.filter((d) =>
         d.email.toLowerCase().includes(search.toLowerCase())
     )
 
@@ -137,10 +137,10 @@ export default function DentistasPage() {
             {/* ── Encabezado ── */}
             <div className="flex flex-col gap-1">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    Dentistas
+                    Usuarios
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                    Gestión del equipo de dentistas
+                    Gestión de usuarios
                 </p>
             </div>
 
@@ -168,7 +168,7 @@ export default function DentistasPage() {
                     className="gap-2 shrink-0"
                 >
                     <UserPlus className="h-4 w-4" />
-                    Agregar Dentista
+                    Agregar Usuario
                 </Button>
             </div>
 
@@ -177,7 +177,7 @@ export default function DentistasPage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
                     <span>
-                        {filtered.length} dentista
+                        {filtered.length} usuario
                         {filtered.length !== 1 ? 's' : ''}
                         {search &&
                             ` · resultado${filtered.length !== 1 ? 's' : ''} para "${search}"`}
@@ -194,7 +194,7 @@ export default function DentistasPage() {
                     <p className="text-sm">
                         {search
                             ? `Sin resultados para "${search}"`
-                            : 'No hay dentistas registrados'}
+                            : 'No hay usuarios registrados'}
                     </p>
                     {!search && (
                         <Button

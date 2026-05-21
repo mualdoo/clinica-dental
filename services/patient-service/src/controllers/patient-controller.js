@@ -126,6 +126,7 @@ class PatientService {
                     email: data.email,
                     name: data.name,
                     lastName: data.lastName,
+                    role: 'patient',
                 }
             )
         }

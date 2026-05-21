@@ -1,54 +1,54 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
-import { randomBytes } from 'crypto';
+import { Model, DataTypes } from 'sequelize'
+import sequelize from '../config/database.js'
+import { randomBytes } from 'crypto'
 
-class PatientToken extends Model {
+class ActivationToken extends Model {
     isTokenValid(token) {
         if (this.activationToken !== token) {
-            return false;
+            return false
         }
 
-        const now = new Date(Date.now);
-        const expireTime = new Date(this.expiresAt);
+        const now = new Date(Date.now)
+        const expireTime = new Date(this.expiresAt)
         if (now > expireTime) {
-            return false;
+            return false
         }
-        return true;
+        return true
     }
 }
 
-const generateToken = (patientToken) => {
-    const token = randomBytes(32).toString('hex');
-    
-    const dayInMilliseconds = 24 * 60 * 60 * 1000;
-    const expiresAt = new Date(Date.now() + dayInMilliseconds);
+const generateToken = (activationToken) => {
+    const token = randomBytes(32).toString('hex')
 
-    patientToken.activationToken = token;
-    patientToken.expiresAt = expiresAt;
-};
+    const dayInMilliseconds = 24 * 60 * 60 * 1000
+    const expiresAt = new Date(Date.now() + dayInMilliseconds)
 
-PatientToken.init(
+    activationToken.activationToken = token
+    activationToken.expiresAt = expiresAt
+}
+
+ActivationToken.init(
     {
         activationToken: {
             type: DataTypes.STRING,
             validate: {
-                isNull: true
-            }
+                isNull: true,
+            },
         },
         expiresAt: {
             type: DataTypes.DATE,
             validate: {
-                isNull: true
-            }
-        }
+                isNull: true,
+            },
+        },
     },
     {
         sequelize,
         timestamps: false,
         hooks: {
-            beforeSave: generateToken
-        }
+            beforeSave: generateToken,
+        },
     }
-);
+)
 
-export default PatientToken;
+export default ActivationToken

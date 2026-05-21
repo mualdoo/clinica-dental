@@ -7,7 +7,7 @@ console.log('Reminder Worker iniciado')
 cron.schedule('0 * * * *', async () => {
     await sendReminders()
     // TODO: marcar las citas como missed
-    // TODO: eliminar patientTokens
+    // TODO: eliminar ActivationTokens
 })
 
 // Corre una vez al arrancar para verificar que todo funciona

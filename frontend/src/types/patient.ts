@@ -3,7 +3,13 @@ import type { PaginatedResponse } from '@/types/backend-response'
 // ─── Enums ────────────────────────────────────────────────────────────────────
 export type Gender = 'M' | 'F' | 'O'
 export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-'
-export type HealthAlertType = 'allergy' | 'condition' | 'medication' | 'other'
+export const healthAlertTypes = [
+    'alergia',
+    'condición',
+    'medicamento',
+    'otro',
+] as const
+export type HealthAlertType = (typeof healthAlertTypes)[number]
 export type PatientFileType =
     | 'x-ray'
     | 'before_photo'

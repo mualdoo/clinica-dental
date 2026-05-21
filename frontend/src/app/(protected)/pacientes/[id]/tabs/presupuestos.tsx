@@ -46,6 +46,9 @@ import type {
     QuoteStatus,
     PaymentStatus,
     PaymentMethod,
+    PatientQuote,
+    PatientItem,
+    Treatment,
 } from '@/types/billing'
 import {
     DropdownMenu,
@@ -53,6 +56,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useAuthStore } from '@/store/auth-store'
 
 // ─── Configs visuales ─────────────────────────────────────────────────────────
 const QUOTE_STATUS_CFG: Record<
@@ -411,7 +415,13 @@ function NewPaymentModal({
 }
 
 // ─── Sección de items de un presupuesto ───────────────────────────────────────
-function QuoteItemsSection({ quote }: { quote: Quote }) {
+function QuoteItemsSection({
+    quote,
+    canEdit,
+}: {
+    quote: PatientQuote
+    canEdit: boolean
+}) {
     const { data: treatmentsData } = useTreatments({ isActive: true })
     const { data: itemsData, isLoading: itemsLoading } = useQuoteItems(quote.id)
     const { mutate: addItem, isPending: adding } = useCreateQuoteItem(quote.id)
@@ -424,10 +434,24 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
     const [discount, setDiscount] = useState('') // ← Cambio aquí para permitir el placeholder
 
     const treatments = treatmentsData?.data.data ?? []
+    // const items: PatientItem[] = canEdit
+    // ? itemsData?.data.data ?? []
+    // : quote.items ?? []
+
+    const patientItems: PatientItem[] = quote.items ?? []
     const items: QuoteItem[] = itemsData?.data.data ?? []
+
+    const length = canEdit ? items.length : patientItems.length
 
     // Construye mapa treatmentId → Treatment para lookup rápido
     const treatmentMap = Object.fromEntries(treatments.map((t) => [t.id, t]))
+
+    const getItemTreatments = (item: QuoteItem | PatientItem): Treatment => {
+        if (!canEdit) {
+            return (item as PatientItem).treatment
+        }
+        return treatmentMap[item.treatmentId]
+    }
 
     function handleAdd() {
         if (!selectedTreatment) return
@@ -452,7 +476,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
     return (
         <div className="flex flex-col gap-3">
             {/* Agregar item — solo en borrador */}
-            {isDraft && (
+            {isDraft && canEdit && (
                 <div className="flex flex-wrap gap-2">
                     <select
                         value={selectedTreatment}
@@ -509,7 +533,7 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                         />
                     ))}
                 </div>
-            ) : items.length === 0 ? (
+            ) : length === 0 ? (
                 <p className="text-sm text-muted-foreground py-2 text-center">
                     Sin tratamientos agregados
                 </p>
@@ -534,8 +558,8 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {items.map((item) => {
-                                const t = treatmentMap[item.treatmentId]
+                            {(canEdit ? items : patientItems).map((item) => {
+                                const t = getItemTreatments(item)
                                 const subtotal = t
                                     ? t.unitPrice * (1 - item.discount)
                                     : 0
@@ -552,13 +576,13 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
                                         </td>
                                         <td className="hidden sm:table-cell px-3 py-2 text-center text-xs text-muted-foreground">
                                             {item.discount > 0
-                                                ? `${item.discount * 100}%`
+                                                ? `${Math.round(item.discount * 100)}%`
                                                 : '—'}
                                         </td>
                                         <td className="px-3 py-2 text-right text-xs font-semibold text-foreground">
                                             {formatMoney(subtotal)}
                                         </td>
-                                        {isDraft && (
+                                        {isDraft && canEdit && (
                                             <td className="px-2 py-2">
                                                 <button
                                                     onClick={() =>
@@ -597,26 +621,19 @@ function QuoteItemsSection({ quote }: { quote: Quote }) {
 }
 
 // ─── Sección de pagos de un presupuesto ───────────────────────────────────────
-function QuotePaymentsSection({ quote }: { quote: Quote }) {
+function QuotePaymentsSection({
+    quote,
+    canEdit,
+}: {
+    quote: PatientQuote
+    canEdit: boolean
+}) {
     const [showPayModal, setShowPayModal] = useState(false)
-    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-        useQuotePayments(quote.id)
+    const { data, isLoading } = useQuotePayments(quote.id)
 
-    const loaderRef = useRef<HTMLDivElement>(null)
-    useEffect(() => {
-        const el = loaderRef.current
-        if (!el) return
-        const obs = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasNextPage) fetchNextPage()
-            },
-            { threshold: 0.5 }
-        )
-        obs.observe(el)
-        return () => obs.disconnect()
-    }, [hasNextPage, fetchNextPage])
-
-    const payments: Payment[] = data?.pages.flatMap((p) => p.data.data) ?? []
+    const payments: Payment[] = canEdit
+        ? (data?.pages.flatMap((p) => p.data.data) ?? [])
+        : (quote.Payments.flatMap((p) => p) ?? [])
     const totalPaid = payments
         .filter((p) => p.status === 'completed')
         .reduce((acc, p) => acc + (Number(p.amount) || 0), 0)
@@ -663,7 +680,7 @@ function QuotePaymentsSection({ quote }: { quote: Quote }) {
             </div>
 
             {/* Botón registrar pago */}
-            {canPay && (
+            {canPay && canEdit && (
                 <Button
                     size="sm"
                     variant="outline"
@@ -723,11 +740,6 @@ function QuotePaymentsSection({ quote }: { quote: Quote }) {
                             ))}
                         </tbody>
                     </table>
-                    <div ref={loaderRef} className="flex justify-center py-1">
-                        {isFetchingNextPage && (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                        )}
-                    </div>
                 </div>
             )}
 
@@ -743,14 +755,19 @@ function QuotePaymentsSection({ quote }: { quote: Quote }) {
 }
 
 // ─── Tarjeta de presupuesto expandible ────────────────────────────────────────
-function QuoteCard({ quote }: { quote: Quote }) {
+function QuoteCard({
+    quote,
+    canEdit,
+}: {
+    quote: PatientQuote
+    canEdit: boolean
+}) {
     const [expanded, setExpanded] = useState(false)
     const [activeTab, setActiveTab] = useState<'items' | 'payments'>('items')
     const { mutate: patchQuote } = usePatchQuote()
     const { mutate: deleteQuote } = useDeleteQuote()
     const { mutate: generatePdf, isPending: generatingPdf } =
         useGenerateQuotePdf()
-
     const isDraft = quote.status === 'draft'
 
     return (
@@ -775,84 +792,86 @@ function QuoteCard({ quote }: { quote: Quote }) {
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                    {/* Acciones rápidas */}
-                    {isDraft && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                patchQuote({
-                                    id: quote.id,
-                                    dto: { status: 'sent' },
-                                })
-                            }}
-                            className="hidden sm:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        >
-                            Marcar enviado
-                        </button>
-                    )}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                {canEdit && (
+                    <div className="flex items-center gap-1 shrink-0">
+                        {/* Acciones rápidas */}
+                        {isDraft && (
                             <button
-                                onClick={(e) => e.stopPropagation()}
-                                disabled={generatingPdf}
-                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                                title="Exportar PDF"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    patchQuote({
+                                        id: quote.id,
+                                        dto: { status: 'sent' },
+                                    })
+                                }}
+                                className="hidden sm:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                             >
-                                {generatingPdf ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                    <FileDown className="h-3.5 w-3.5" />
-                                )}
+                                Marcar enviado
                             </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem
-                                className="gap-2 cursor-pointer text-xs"
+                        )}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    onClick={(e) => e.stopPropagation()}
+                                    disabled={generatingPdf}
+                                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                                    title="Exportar PDF"
+                                >
+                                    {generatingPdf ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <FileDown className="h-3.5 w-3.5" />
+                                    )}
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                    className="gap-2 cursor-pointer text-xs"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        generatePdf({
+                                            quoteId: quote.id,
+                                            createPatientFile: false,
+                                        })
+                                    }}
+                                >
+                                    <FileDown className="h-3.5 w-3.5" />
+                                    Solo descargar PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="gap-2 cursor-pointer text-xs"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        generatePdf({
+                                            quoteId: quote.id,
+                                            createPatientFile: true,
+                                        })
+                                    }}
+                                >
+                                    <FileDown className="h-3.5 w-3.5" />
+                                    Descargar y guardar en expediente
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        {isDraft && (
+                            <button
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    generatePdf({
-                                        quoteId: quote.id,
-                                        createPatientFile: false,
-                                    })
+                                    if (confirm('¿Eliminar este presupuesto?'))
+                                        deleteQuote(quote.id)
                                 }}
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                             >
-                                <FileDown className="h-3.5 w-3.5" />
-                                Solo descargar PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="gap-2 cursor-pointer text-xs"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    generatePdf({
-                                        quoteId: quote.id,
-                                        createPatientFile: true,
-                                    })
-                                }}
-                            >
-                                <FileDown className="h-3.5 w-3.5" />
-                                Descargar y guardar en expediente
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    {isDraft && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                if (confirm('¿Eliminar este presupuesto?'))
-                                    deleteQuote(quote.id)
-                            }}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        >
-                            <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                    )}
-                    {expanded ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" />
-                    ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
-                    )}
-                </div>
+                                <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                        )}
+                    </div>
+                )}
+                {expanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
+                )}
             </div>
 
             {/* Contenido expandible */}
@@ -884,9 +903,9 @@ function QuoteCard({ quote }: { quote: Quote }) {
                     </div>
 
                     {activeTab === 'items' ? (
-                        <QuoteItemsSection quote={quote} />
+                        <QuoteItemsSection quote={quote} canEdit={canEdit} />
                     ) : (
-                        <QuotePaymentsSection quote={quote} />
+                        <QuotePaymentsSection quote={quote} canEdit={canEdit} />
                     )}
 
                     {/* Cambio de estado para aceptar/rechazar */}
@@ -930,6 +949,9 @@ function QuoteCard({ quote }: { quote: Quote }) {
 export function TabPresupuestos({ patientId }: { patientId: string }) {
     const [showNewModal, setShowNewModal] = useState(false)
 
+    const user = useAuthStore((s) => s.user)
+    const canEdit = user?.role === 'dentist' || user?.role === 'admin'
+
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
         useQuotesByPatient(patientId)
 
@@ -947,7 +969,7 @@ export function TabPresupuestos({ patientId }: { patientId: string }) {
         return () => obs.disconnect()
     }, [hasNextPage, fetchNextPage])
 
-    const quotes: Quote[] = data?.pages.flatMap((p) => p.data.data) ?? []
+    const quotes: PatientQuote[] = data?.pages.flatMap((p) => p.data.data) ?? []
 
     return (
         <div className="flex flex-col gap-4">
@@ -958,14 +980,16 @@ export function TabPresupuestos({ patientId }: { patientId: string }) {
                         ? 'Cargando…'
                         : `${quotes.length} presupuesto${quotes.length !== 1 ? 's' : ''}`}
                 </p>
-                <Button
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => setShowNewModal(true)}
-                >
-                    <Plus className="h-3.5 w-3.5" />
-                    Nuevo Presupuesto
-                </Button>
+                {canEdit && (
+                    <Button
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setShowNewModal(true)}
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                        Nuevo Presupuesto
+                    </Button>
+                )}
             </div>
 
             {/* Lista */}
@@ -986,7 +1010,7 @@ export function TabPresupuestos({ patientId }: { patientId: string }) {
             ) : (
                 <div className="flex flex-col gap-3">
                     {quotes.map((q) => (
-                        <QuoteCard key={q.id} quote={q} />
+                        <QuoteCard key={q.id} quote={q} canEdit={canEdit} />
                     ))}
                 </div>
             )}

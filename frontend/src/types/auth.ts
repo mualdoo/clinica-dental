@@ -24,7 +24,6 @@ export interface LoginPayload {
 
 export interface RegisterPayload {
     email: string
-    password: string
     name: string
     lastName: string
     role?: string

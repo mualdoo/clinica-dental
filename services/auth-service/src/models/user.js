@@ -63,13 +63,6 @@ User.init(
         hooks: {
             beforeSave: hashIfChanged,
         },
-        validate: {
-            isPasswordValid() {
-                if (!this.password && this.role != 'patient') {
-                    throw new Error('Password is required')
-                }
-            },
-        },
     }
 )
 
