@@ -52,7 +52,7 @@ export default function SeleccionarPerfilPage() {
 
         document.cookie = `activePatientId=${patient.id}; path=/; SameSite=Strict`
 
-        router.push('/portal')
+        router.push('/portal/inicio')
     }
 
     function handleNew() {

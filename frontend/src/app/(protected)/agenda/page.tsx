@@ -17,6 +17,7 @@ import {
     Trash2,
     Filter,
     X,
+    File,
 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -52,7 +53,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 // ─── Imports para los filtros ────────────────────────────────────────────────
 import { useSearchPatients } from '@/hooks/use-patient'
-import { useSearchDentists } from '@/hooks/use-auth'
+import { useAuth, useSearchDentists } from '@/hooks/use-auth'
 import { Patient } from '@/types/patient'
 import { User as UserType } from '@/types/auth'
 import { SearchSelector } from '@/components/SearchSelector'
@@ -305,6 +306,19 @@ function AppointmentCard({ appt }: { appt: Appointment }) {
                                         </DropdownMenuItem>
                                     )}
 
+                                    {/* IR AL PERFIL DEL PACIENTE */}
+                                    <DropdownMenuItem
+                                        className="gap-2 cursor-pointer"
+                                        onSelect={() =>
+                                            router.push(
+                                                `/pacientes/${appt.patientId}`
+                                            )
+                                        }
+                                    >
+                                        <File className="h-3.5 w-3.5" />
+                                        Expediente
+                                    </DropdownMenuItem>
+
                                     {/* ACCIÓN DE EDITAR */}
                                     <DropdownMenuItem
                                         className="gap-2 cursor-pointer"
@@ -515,6 +529,9 @@ function WeeklyView({
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 export default function AgendaPage() {
+    const { user } = useAuth()
+    const isFirstRender = useRef(true)
+
     const [view, setView] = useState<'daily' | 'weekly'>('daily')
     const [currentDate, setDate] = useState<Date | null>(null)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -522,6 +539,22 @@ export default function AgendaPage() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
+
+    useEffect(() => {
+        // Nos aseguramos de que el usuario ya cargó y que sea el primer renderizado
+        if (user && isFirstRender.current) {
+            isFirstRender.current = false
+
+            // Si es dentista y no hay un filtro de dentista ya en la URL...
+            if (user.role === 'dentist' && !searchParams.has('dentistId')) {
+                const params = new URLSearchParams(searchParams.toString())
+                params.set('dentistId', user.id)
+
+                // Usamos replace para no crear historial basura en el navegador
+                router.replace(`${pathname}?${params.toString()}`)
+            }
+        }
+    }, [user, searchParams, pathname, router])
 
     // ─── Filtros activos desde la URL ───
     const urlPatientId = searchParams.get('patientId') || undefined
@@ -554,6 +587,10 @@ export default function AgendaPage() {
     const [formEndTime, setFormEndTime] = useState(
         urlEndTime ? urlEndTime.split('T')[0] : ''
     )
+
+    useEffect(() => {
+        if (urlDentistId) setFormDentistId(urlDentistId)
+    }, [urlDentistId])
 
     useEffect(() => {
         setDate(new Date())

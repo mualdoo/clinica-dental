@@ -86,6 +86,7 @@ export interface CreateQuoteDto {
     notes?: string
     validUntil: string
     status?: QuoteStatus
+    isOdontogramCreated?: boolean
 }
 export interface PatchQuoteDto extends Partial<CreateQuoteDto> {}
 
@@ -113,6 +114,7 @@ export interface QuoteParams {
     page?: number
     limit?: number
     status?: QuoteStatus
+    isOdontogramCreated?: boolean
 }
 
 export interface PaymentParams {

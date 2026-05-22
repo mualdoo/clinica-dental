@@ -20,11 +20,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { Tooth } from '@/types/patient'
 
 const LEGEND_CONDITIONS = [
-    'cavity',
-    'endodontics',
-    'crown',
-    'extraction',
-    'implant',
+    'sano',
+    'caries',
+    'endodoncia',
+    'corona',
+    'extraccion',
+    'implante',
 ] as const
 
 interface OdontogramaProps {
@@ -119,7 +120,7 @@ export function Odontograma({
                 const tooth = teethMap[num]
                 const condition = tooth
                     ? conditionFromString(tooth.condition)
-                    : 'healthy'
+                    : 'sano'
                 const color = CONDITION_COLORS[condition]
 
                 // Pinta el diente según la condición real (sin optimismo)

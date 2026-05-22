@@ -47,8 +47,9 @@ const validateSchedule = async (data, id = null) => {
 
     const whereClause = {
         status: 'scheduled',
-        startTime: { [Op.lt]: endTime },
-        endTime: { [Op.gt]: startTime },
+        // Cambiado a [Op.lte] y [Op.gte] para manejar correctamente los límites
+        startTime: { [Op.lte]: endTime },
+        endTime: { [Op.gte]: startTime },
         [Op.or]: conditions,
     }
     if (id) whereClause.id = { [Op.ne]: id }
@@ -56,12 +57,21 @@ const validateSchedule = async (data, id = null) => {
     const collision = await Appointment.findOne({ where: whereClause })
 
     if (collision) {
+        // Validación extra: Si solo se tocan en el borde exacto, NO es una colisión
+        const isJustEdgeTouch =
+            new Date(collision.endTime).getTime() ===
+                new Date(startTime).getTime() ||
+            new Date(collision.startTime).getTime() ===
+                new Date(endTime).getTime()
+
+        if (isJustEdgeTouch) return
+
         if (cubicleId && collision.cubicleId === cubicleId)
-            throw new AppError('Cubicle occupied')
+            throw new AppError('Este cubículo ya está ocupado')
         if (patientId && collision.patientId === patientId)
-            throw new AppError('Patient occupied')
+            throw new AppError('Este paciente ya está ocupado')
         if (dentistId && collision.dentistId === dentistId)
-            throw new AppError('Dentist occupied')
+            throw new AppError('Este dentista ya está ocupado')
     }
 }
 

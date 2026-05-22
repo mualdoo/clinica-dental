@@ -39,25 +39,6 @@ export function RegisterForm() {
     return (
         <Card className="w-full max-w-md animate-fade-in border-border/50 shadow-2xl">
             <CardHeader className="space-y-1 pb-4">
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="h-5 w-5 text-primary-foreground"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                        >
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-                            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                            <line x1="9" y1="9" x2="9.01" y2="9" />
-                            <line x1="15" y1="9" x2="15.01" y2="9" />
-                        </svg>
-                    </div>
-                    <span className="text-lg font-semibold tracking-tight">
-                        DentalApp
-                    </span>
-                </div>
                 <CardTitle className="text-2xl font-bold">
                     Crear cuenta
                 </CardTitle>

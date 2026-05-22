@@ -8,11 +8,42 @@ import {
     File,
     Loader2,
     FolderOpen,
+    Camera,
+    MoreVertical,
+    Send,
+    Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { usePatientFiles, useCreatePatientFile } from '@/hooks/use-patient'
+import {
+    usePatientFiles,
+    useCreatePatientFile,
+    usePatient,
+    useSendPatientFile,
+    useDeletePatientFile,
+} from '@/hooks/use-patient'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+
 import type { PatientFile, PatientFileType } from '@/types/patient'
-// Importa la función que creamos para comunicarse con el storage-service
 import { storageService } from '@/lib/api/storage-service'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -32,64 +63,116 @@ const FILE_LABELS: Record<PatientFileType, string> = {
     other: 'Otro',
 }
 
-function FileCard({ file }: { file: PatientFile }) {
+function FileCard({
+    file,
+    onSend,
+    onDelete,
+    canEdit,
+}: {
+    file: PatientFile
+    onSend: (id: string) => void
+    onDelete: (id: string) => void
+    canEdit: boolean
+}) {
     const sizeKb = (file.sizeBytes / 1024).toFixed(0)
-    // Determinamos si es una imagen basándonos en el mimeType
     const isImage = file.mimeType?.startsWith('image/')
 
     return (
-        <a
-            href={file.storageKey}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-3 shadow-sm hover:border-primary/30 transition-all cursor-pointer hover:shadow-md"
-        >
-            <div className="relative flex h-24 items-center justify-center rounded-lg bg-muted/50 overflow-hidden">
-                {isImage ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                        src={file.storageKey}
-                        alt={file.filename}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                ) : (
-                    FILE_ICONS[file.type] || FILE_ICONS['other']
-                )}
-            </div>
-            <div className="flex flex-col gap-0.5 mt-1">
-                <p
-                    className="text-xs font-semibold text-foreground truncate"
-                    title={file.filename}
-                >
-                    {file.filename}
-                </p>
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-muted-foreground">
-                        {FILE_LABELS[file.type] || 'Archivo'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                        {sizeKb} KB
-                    </span>
+        <div className="relative group flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-3 shadow-sm hover:border-primary/30 transition-all hover:shadow-md">
+            {/* Menú de opciones */}
+            {canEdit && (
+                <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 bg-background/50 backdrop-blur-sm hover:bg-background/80"
+                            >
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onSend(file.id)}>
+                                <Send className="mr-2 h-4 w-4" />
+                                Enviar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => onDelete(file.id)}
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-            </div>
-        </a>
+            )}
+
+            {/* Enlace al archivo */}
+            <a
+                href={file.storageKey}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col gap-2 cursor-pointer outline-none"
+            >
+                <div className="relative flex h-24 items-center justify-center rounded-lg bg-muted/50 overflow-hidden">
+                    {isImage ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                            src={file.storageKey}
+                            alt={file.filename}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                    ) : (
+                        FILE_ICONS[file.type] || FILE_ICONS['other']
+                    )}
+                </div>
+                <div className="flex flex-col gap-0.5 mt-1">
+                    <p
+                        className="text-xs font-semibold text-foreground truncate pr-6"
+                        title={file.filename}
+                    >
+                        {file.filename}
+                    </p>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground">
+                            {FILE_LABELS[file.type] || 'Archivo'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                            {sizeKb} KB
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
     )
 }
 
 export function TabArchivos({ patientId }: { patientId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const cameraInputRef = useRef<HTMLInputElement>(null)
     const loaderRef = useRef<HTMLDivElement>(null)
 
     const user = useAuthStore((s) => s.user)
     const canEdit = user?.role === 'dentist' || user?.role === 'admin'
 
-    // Estado adicional para bloquear el botón mientras se sube a Supabase
     const [isUploadingToCloud, setIsUploadingToCloud] = useState(false)
+
+    // Estados para el Dialog
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [selectedType, setSelectedType] =
+        useState<PatientFileType>('document')
 
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
         usePatientFiles(patientId)
 
     const { mutate: createFile, isPending } = useCreatePatientFile(patientId)
+    const { mutate: sendPatientFile } = useSendPatientFile()
+    const { mutate: deletePatientFile } = useDeletePatientFile(patientId)
+
+    const { data: patient } = usePatient(patientId)
 
     useEffect(() => {
         const el = loaderRef.current
@@ -105,44 +188,57 @@ export function TabArchivos({ patientId }: { patientId: string }) {
     }, [hasNextPage, fetchNextPage])
 
     const files = data?.pages.flatMap((p) => p.data.data) ?? []
-
-    // Evaluamos si alguna de las dos cargas está activa
     const isBusy = isPending || isUploadingToCloud
 
-    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleFileSelection(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0]
         if (!file) return
+
+        setSelectedFile(file)
+        setSelectedType(
+            file.type.startsWith('image/') ? 'before_photo' : 'document'
+        )
+
+        // Limpiamos inputs
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        if (cameraInputRef.current) cameraInputRef.current.value = ''
+    }
+
+    async function handleUpload() {
+        if (!selectedFile) return
 
         try {
             setIsUploadingToCloud(true)
 
-            // 1. Subir el archivo físico al microservicio de almacenamiento
-            // const uploadResponse = await storageService.upload(file)
-            // const publicUrl = uploadResponse.url
-            const publicUrl =
+            let publicUrl =
                 'https://jqikfytejgwtjobdudrt.supabase.co/storage/v1/object/public/archivos-clinica/uploads/1779134653814_images.jpeg'
+            if (!patient?.data.email.includes('@falso.com')) {
+                const uploadResponse = await storageService.upload(selectedFile)
+                publicUrl = uploadResponse.url
+            }
 
-            // 2. Determinar el tipo lógico para la clínica
-            const type: PatientFileType = file.type.startsWith('image/')
-                ? 'before_photo'
-                : 'document'
-
-            // 3. Guardar los metadatos en el paciente-service con la URL real
             createFile({
-                type,
-                filename: file.name,
-                storageKey: publicUrl, // Aquí inyectamos el enlace de Supabase
-                mimeType: file.type,
-                sizeBytes: file.size,
+                type: selectedType,
+                filename: selectedFile.name,
+                storageKey: publicUrl,
+                mimeType: selectedFile.type,
+                sizeBytes: selectedFile.size,
             })
+
+            // Cerramos dialog y reseteamos el estado local
+            setIsUploadDialogOpen(false)
+            setSelectedFile(null)
         } catch (error) {
             console.error('Error procesando el archivo:', error)
-            // Aquí sería ideal lanzar un toast de error de Shadcn UI
         } finally {
             setIsUploadingToCloud(false)
-            // Limpiamos el input para permitir subir el mismo archivo si hubo error
-            if (fileInputRef.current) fileInputRef.current.value = ''
         }
+    }
+
+    // Al cerrar el dialog sin subir, limpiamos el archivo
+    function onOpenChange(open: boolean) {
+        setIsUploadDialogOpen(open)
+        if (!open) setSelectedFile(null)
     }
 
     return (
@@ -152,27 +248,33 @@ export function TabArchivos({ patientId }: { patientId: string }) {
                 <p className="text-sm text-muted-foreground">
                     {files.length} archivo{files.length !== 1 ? 's' : ''}
                 </p>
+
                 {canEdit && (
                     <Button
                         size="sm"
                         className="gap-1.5"
-                        disabled={isBusy}
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => setIsUploadDialogOpen(true)}
                     >
-                        {isBusy ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <Upload className="h-3.5 w-3.5" />
-                        )}
+                        <Upload className="h-3.5 w-3.5" />
                         Subir archivo
                     </Button>
                 )}
+
+                {/* Inputs ocultos de carga */}
                 <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*,application/pdf"
                     className="hidden"
-                    onChange={handleFileChange}
+                    onChange={handleFileSelection}
+                />
+                <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFileSelection}
                 />
             </div>
 
@@ -194,7 +296,13 @@ export function TabArchivos({ patientId }: { patientId: string }) {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {files.map((f) => (
-                        <FileCard key={f.id} file={f} />
+                        <FileCard
+                            key={f.id}
+                            file={f}
+                            onSend={(id) => sendPatientFile(id)}
+                            onDelete={(id) => deletePatientFile(id)}
+                            canEdit={canEdit}
+                        />
                     ))}
                 </div>
             )}
@@ -204,6 +312,103 @@ export function TabArchivos({ patientId }: { patientId: string }) {
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}
             </div>
+
+            {/* Dialog de subida */}
+            <Dialog open={isUploadDialogOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="w-[90vw] max-w-md rounded-xl sm:w-full">
+                    <DialogHeader>
+                        <DialogTitle>Subir nuevo archivo</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex flex-col gap-5 py-2">
+                        {/* Botones para seleccionar origen */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => cameraInputRef.current?.click()}
+                                className="h-auto py-3 flex flex-col gap-2"
+                            >
+                                <Camera className="h-5 w-5 text-muted-foreground" />
+                                <span className="text-xs sm:text-sm font-medium">
+                                    Usar Cámara
+                                </span>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="h-auto py-3 flex flex-col gap-2"
+                            >
+                                <Upload className="h-5 w-5 text-muted-foreground" />
+                                <span className="text-xs sm:text-sm font-medium">
+                                    Galería / Docs
+                                </span>
+                            </Button>
+                        </div>
+
+                        {/* Formulario de datos (solo visible si hay archivo) */}
+                        {selectedFile && (
+                            <div className="flex flex-col gap-4 mt-2 animate-in fade-in slide-in-from-bottom-2">
+                                <div className="space-y-1 p-3 bg-muted/50 rounded-lg border border-border/50">
+                                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                        Archivo seleccionado
+                                    </Label>
+                                    <p
+                                        className="text-sm font-medium truncate"
+                                        title={selectedFile.name}
+                                    >
+                                        {selectedFile.name}
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Tipo de archivo</Label>
+                                    <Select
+                                        value={selectedType}
+                                        onValueChange={(val) =>
+                                            setSelectedType(
+                                                val as PatientFileType
+                                            )
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona el tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(FILE_LABELS).map(
+                                                ([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
+                                                        {label}
+                                                    </SelectItem>
+                                                )
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="mt-2 sm:mt-0">
+                        <Button
+                            disabled={!selectedFile || isBusy}
+                            onClick={handleUpload}
+                            className="w-full sm:w-auto"
+                        >
+                            {isBusy ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Upload className="mr-2 h-4 w-4" />
+                            )}
+                            Guardar archivo
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -19,6 +19,8 @@ class MovementService extends BaseService {
         else if (movement.type === 'consumo') newStock = oldStock - quantity
         else if (movement.type === 'ajuste') newStock = quantity
 
+        if (newStock < 0) throw new AppError('El stock no puede ser negativo')
+
         await item.update({ stockCurrent: newStock })
     }
 

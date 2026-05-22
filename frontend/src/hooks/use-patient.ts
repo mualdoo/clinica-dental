@@ -123,14 +123,14 @@ export function usePatientFiles(patientId: string) {
 
 const TOOTH_LIMIT = 100
 // ─── Teeth ────────────────────────────────────────────────────────────────────
-export function useTeeth(patientId: string) {
+export function useTeeth(
+    patientId: string,
+    params: PaginationParams = { limit: TOOTH_LIMIT }
+) {
     return useInfiniteQuery({
         queryKey: patientKeys.teeth(patientId),
         queryFn: ({ pageParam }) =>
-            toothService.getAllByPatient(patientId, {
-                page: pageParam,
-                limit: TOOTH_LIMIT,
-            }),
+            toothService.getAllByPatient(patientId, params),
         initialPageParam: 1,
         getNextPageParam: getNextPage,
         enabled: !!patientId,
@@ -260,6 +260,16 @@ export function useCreatePatientFile(patientId: string) {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: patientKeys.files(patientId) })
             toast.success('Archivo registrado')
+        },
+        onError: (err: Error) => toast.error(err.message),
+    })
+}
+
+export function useSendPatientFile() {
+    return useMutation({
+        mutationFn: (id: string) => patientFileService.send(id),
+        onSuccess: () => {
+            toast.success('Archivo enviado')
         },
         onError: (err: Error) => toast.error(err.message),
     })

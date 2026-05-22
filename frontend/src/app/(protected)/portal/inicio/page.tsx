@@ -16,7 +16,11 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppointments } from '@/hooks/use-agenda'
-import { useHealthAlerts, useClinicalNotes } from '@/hooks/use-patient'
+import {
+    useHealthAlerts,
+    useClinicalNotes,
+    usePatient,
+} from '@/hooks/use-patient'
 import { useAuthStore } from '@/store/auth-store'
 import type { AppointmentStatus } from '@/types/agenda'
 import type { HealthAlertType } from '@/types/patient'
@@ -131,6 +135,9 @@ export default function PortalPage() {
     const { data: notesData, isLoading: notesLoading } = useClinicalNotes(
         activePatientId ?? ''
     )
+    const { data: activePatient, isLoading: patientLoading } = usePatient(
+        activePatientId ?? ''
+    )
 
     const {
         acceptedQuotes,
@@ -198,7 +205,7 @@ export default function PortalPage() {
                         {greeting ? `${greeting},` : '\u00A0'}
                     </p>
                     <h1 className="text-lg font-bold text-foreground leading-tight">
-                        {user?.name}
+                        {activePatient?.data.name}
                     </h1>
                 </div>
             </div>

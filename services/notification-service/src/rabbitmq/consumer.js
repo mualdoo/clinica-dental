@@ -3,6 +3,7 @@ import { setupConsumer } from '@mualdoo/shared'
 import {
     sendAccountVerificationEmail,
     sendAppointmentConfirmationEmail,
+    sendPatientFile,
     sendStaffAccountVerificationEmail,
 } from '../services/email-service.js'
 
@@ -34,6 +35,16 @@ export default async function startConsumers() {
             'appointment_created_queue',
             async (data) => {
                 return await sendAppointmentConfirmationEmail(data)
+            }
+        )
+
+        // Consumer for sending a file
+        await setupConsumer(
+            channel,
+            'send_file_to_patient',
+            'send_file_to_patient_queue',
+            async (data) => {
+                return await sendPatientFile(data)
             }
         )
 

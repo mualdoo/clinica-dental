@@ -123,6 +123,6 @@
         @apply bg-background text-foreground;
     }
     html {
-        font-size: 19px; /* default es 16px, súbelo a 17-18px */
+        font-size: 18px; /* default es 16px, súbelo a 17-18px */
     }
 }
