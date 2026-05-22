@@ -181,11 +181,33 @@ export function AppointmentForm({
         if (!selectedDate || !selectedCubicle || isLoadingDispo) return []
 
         const slots: { time: string; isOccupied: boolean }[] = []
+
+        const now = new Date()
+        const isToday = selectedDate.toDateString() === now.toDateString()
+
         let current = new Date(selectedDate)
         current.setHours(8, 0, 0, 0) // 08:00 AM
 
+        if (isToday && selectedDate < now) {
+            // Redondeo al alza a los siguientes 30 minutos
+            // Obtenemos los minutos actuales y calculamos cuánto falta para el siguiente bloque de 30
+            const minutes = now.getMinutes()
+            const nextHalfHour = minutes < 30 ? 30 : 60
+
+            current.setHours(now.getHours())
+            current.setMinutes(nextHalfHour === 60 ? 0 : 30)
+
+            // Si fueron 60 minutos (la siguiente hora), aumentamos la hora
+            if (nextHalfHour === 60) {
+                current.setHours(now.getHours() + 1)
+            }
+
+            // Aseguramos que no se pase de las horas de trabajo (opcional)
+            current.setSeconds(0, 0)
+        }
+
         const endOfDayLimit = new Date(selectedDate)
-        endOfDayLimit.setHours(20, 0, 0, 0) // 20:00 PM
+        endOfDayLimit.setHours(18, 0, 0, 0) // 18:00 PM
 
         const durationMins = parseInt(selectedDuration)
 
@@ -211,7 +233,7 @@ export function AppointmentForm({
 
             slots.push({
                 time: format(current, 'HH:mm'),
-                isOccupied,
+                isOccupied: isOccupied,
             })
 
             // Avanzamos en bloques de 30 minutos
@@ -361,7 +383,7 @@ export function AppointmentForm({
                     </div>
 
                     {/* COLUMNA 2: Tiempos y Fechas */}
-                    <div className="space-y-6 bg-slate-50/50 p-6 rounded-lg border border-slate-100">
+                    <div className="space-y-6 p-6 rounded-lg">
                         <div className="space-y-2 flex flex-col">
                             <Label>Fecha de Consulta</Label>
                             <Popover

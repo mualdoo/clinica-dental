@@ -137,14 +137,19 @@ export const patientFileService = {
             body: JSON.stringify(dto),
         }),
 
+    send: (id: string) =>
+        apiClient<SingleResponse<string>>(`/patient/file/${id}/send`, {
+            method: 'POST',
+        }),
+
     patch: (id: string, dto: PatchPatientFileDto) =>
-        apiClient<SingleResponse<PatientFile>>(`/file/${id}`, {
+        apiClient<SingleResponse<PatientFile>>(`/patient/file/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(dto),
         }),
 
     remove: (id: string) =>
-        apiClient<DeleteResponse>(`/file/${id}`, { method: 'DELETE' }),
+        apiClient<DeleteResponse>(`/patient/file/${id}`, { method: 'DELETE' }),
 }
 
 // ─── Teeth ────────────────────────────────────────────────────────────────────

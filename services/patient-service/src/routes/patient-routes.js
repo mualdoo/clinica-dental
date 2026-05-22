@@ -121,7 +121,7 @@ router.delete(
     clinicalNoteController.remove
 )
 
-// // Files
+// Files
 router.post(
     '/:id/file',
     authorize(['admin', 'dentist']),
@@ -147,6 +147,11 @@ router.delete(
     '/file/:id',
     authorize(['admin', 'dentist']),
     patientFileController.remove
+)
+router.post(
+    '/file/:id/send',
+    authorize(['admin', 'dentist']),
+    patientFileController.sendToPatient
 )
 
 // Patient portal

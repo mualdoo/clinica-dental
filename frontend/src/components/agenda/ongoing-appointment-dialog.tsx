@@ -282,11 +282,11 @@ function OngoingContent({
         setUsedMaterials((prev) => prev.filter((m) => m.item.id !== itemId))
     }
 
-    useEffect(() => {
-        if (odontogramQuote) {
-            setStep('done')
-        }
-    }, [odontogramQuote]) // Solo se ejecuta cuando odontogramQuote cambia
+    // useEffect(() => {
+    //     if (odontogramQuote) {
+    //         setStep('done')
+    //     }
+    // }, [odontogramQuote]) // Solo se ejecuta cuando odontogramQuote cambia
 
     // ── Estado: cargando dientes ──────────────────────────────────────────────
     if (teethLoading) {

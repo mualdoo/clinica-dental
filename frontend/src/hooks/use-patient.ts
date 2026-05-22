@@ -265,6 +265,16 @@ export function useCreatePatientFile(patientId: string) {
     })
 }
 
+export function useSendPatientFile() {
+    return useMutation({
+        mutationFn: (id: string) => patientFileService.send(id),
+        onSuccess: () => {
+            toast.success('Archivo enviado')
+        },
+        onError: (err: Error) => toast.error(err.message),
+    })
+}
+
 export function usePatchPatientFile(patientId: string) {
     const qc = useQueryClient()
     return useMutation({

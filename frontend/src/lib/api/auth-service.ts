@@ -5,7 +5,8 @@ import type {
     LoginPayload,
     RegisterPayload,
     User,
-    UserRole,
+    UserParams,
+    verificationEmailResponse,
 } from '@/types/auth'
 
 // ─── Helper: convierte un objeto de params a query string ─────────────────────
@@ -42,8 +43,8 @@ export const authService = {
         apiClient<PaginatedResponse<User>>(
             `/auth/dentist/search?key=${encodeURIComponent(query)}`
         ),
-    listUsers: (role: UserRole | null) => {
-        const qs = toQueryString({ role })
+    listUsers: (params: UserParams = {}) => {
+        const qs = toQueryString({ page: 1, limit: 10, ...params })
         return apiClient<PaginatedResponse<User>>(`/auth/user${qs}`)
     },
     registerUser: (payload: RegisterPayload) =>
@@ -51,5 +52,10 @@ export const authService = {
             method: 'POST',
             body: JSON.stringify(payload),
             withAuth: true,
+        }),
+    sendVerificationEmail: (id: string) =>
+        apiClient<verificationEmailResponse>('/auth/admin/verification-email', {
+            method: 'POST',
+            body: JSON.stringify({ id }),
         }),
 }

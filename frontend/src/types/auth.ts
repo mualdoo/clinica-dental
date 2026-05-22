@@ -17,6 +17,17 @@ export interface AuthResponse {
     error?: string
 }
 
+export interface verificationEmailResponse {
+    success: boolean
+    data: string
+}
+
+export interface UserParams {
+    role?: UserRole
+    page?: number
+    limit?: number
+}
+
 export interface LoginPayload {
     email: string
     password: string

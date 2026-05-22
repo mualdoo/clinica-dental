@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 import { authService } from '@/lib/api/auth-service'
 import { useAuthStore } from '@/store/auth-store'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { LoginPayload, RegisterPayload, UserRole } from '@/types/auth'
 import { toast } from 'sonner'
 
@@ -88,5 +88,15 @@ export function useSearchDentists(query: string) {
         queryFn: () => authService.search(query),
         enabled: query.trim().length >= 2, // no busca con menos de 2 caracteres
         staleTime: 10 * 1000, // caché de 10s para no spamear al backend
+    })
+}
+
+export function useSendVerificationEmail() {
+    return useMutation({
+        mutationFn: (id: string) => authService.sendVerificationEmail(id),
+        onSuccess: () => {
+            toast.success('Correo enviado correctamente')
+        },
+        onError: (err: Error) => toast.error(err.message),
     })
 }

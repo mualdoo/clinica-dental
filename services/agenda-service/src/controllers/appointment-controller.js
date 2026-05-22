@@ -57,11 +57,11 @@ const validateSchedule = async (data, id = null) => {
 
     if (collision) {
         if (cubicleId && collision.cubicleId === cubicleId)
-            throw new AppError('Cubicle occupied')
+            throw new AppError('Este cubículo ya está ocupado')
         if (patientId && collision.patientId === patientId)
-            throw new AppError('Patient occupied')
+            throw new AppError('Este paciente ya está ocupado')
         if (dentistId && collision.dentistId === dentistId)
-            throw new AppError('Dentist occupied')
+            throw new AppError('Este dentista ya está ocupado')
     }
 }
 

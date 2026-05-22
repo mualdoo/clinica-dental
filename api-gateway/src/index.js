@@ -95,6 +95,16 @@ app.get(
     })
 )
 
+app.post(
+    '/auth/admin/verification-email',
+    authenticateToken,
+    getProxyMidleware('http://auth-service:3001', {
+        pathRewrite: {
+            '^/auth': '',
+        },
+    })
+)
+
 app.use(
     '/auth',
     createProxyMiddleware({

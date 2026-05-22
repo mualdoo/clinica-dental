@@ -41,7 +41,7 @@ function DentistBadge({
     )
 
     // Nombre visible: usa la parte antes del @ si no hay name/lastName en el modelo User
-    const displayName = dentist.email.split('@')[0]
+    const displayName = `${dentist.name} ${dentist.lastName}`
 
     return (
         <Badge
@@ -65,7 +65,7 @@ function DentistBadge({
             {/* Cubículo si está ocupado */}
             {busy && cubicle && (
                 <span className="text-[10px] opacity-70 shrink-0">
-                    · C#{cubicle.number} - {cubicle.name}
+                    · C#{cubicle.number}
                 </span>
             )}
         </Badge>

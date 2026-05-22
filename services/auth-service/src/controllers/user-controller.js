@@ -1,6 +1,6 @@
 import { User, ActivationToken } from '../models/index.js'
 import { generateToken } from './user-service.js'
-import { ok, fail, catchAsync, publishEvent } from '@mualdoo/shared'
+import { ok, fail, catchAsync, publishEvent, AppError } from '@mualdoo/shared'
 import { Op } from 'sequelize'
 import jwt from 'jsonwebtoken'
 import amqp from 'amqplib'
@@ -97,10 +97,10 @@ export const login = catchAsync(async (req, res) => {
     const { email, password } = req.body
     const user = await User.findOne({ where: { email } })
 
-    if (!user) return fail(res, 'Invallid login')
-    if (!user.isVerified()) return fail(res, 'User email is not verified')
+    if (!user) return fail(res, 'Credenciales inválidas')
+    if (!user.isVerified()) return fail(res, 'Credenciales inválidas')
     const rightPassword = await user.verifyPassword(password)
-    if (!rightPassword) return fail(res, 'Invallid login')
+    if (!rightPassword) return fail(res, 'Credenciales inválidas')
 
     const { accessToken, refreshToken } = generateToken(user)
     await user.update({ refreshToken })
@@ -251,4 +251,28 @@ export const getUsers = catchAsync(async (req, res) => {
     }
 
     return ok(res, response)
+})
+
+export const sendVerificationEmail = catchAsync(async (req, res) => {
+    const { id } = req.body
+
+    const user = await User.findByPk(id)
+    if (!user) throw new AppError('Usuario no encontrado')
+
+    await ActivationToken.destroy({ where: { userId: user.id } })
+    const activationToken = await ActivationToken.create({ userId: user.id })
+
+    await publishEvent(
+        amqp,
+        'user_account_created_exchange',
+        process.env.RABBITMQ_URL,
+        {
+            email: user.email,
+            fullName: `${user.name} ${user.lastName}`,
+            token: activationToken.activationToken,
+            role: user.role,
+        }
+    )
+
+    return ok(res, 'Correo enviado correctamente')
 })

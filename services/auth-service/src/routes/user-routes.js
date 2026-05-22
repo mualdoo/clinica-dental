@@ -25,6 +25,12 @@ router.get(
 
 router.get('/user', authorize(['admin', 'receptionist']), controller.getUsers)
 
+router.post(
+    '/admin/verification-email',
+    authorize(['admin']),
+    controller.sendVerificationEmail
+)
+
 // Only accessed by agenda/patient-service
 router.get('/user-info/:id', verifyInternalKey, controller.getInfo)
 

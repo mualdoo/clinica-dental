@@ -286,7 +286,7 @@ function TabArticulos() {
     const [filterLow, setFilterLow] = useState(false)
 
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
-        useItems(filterLow ? { lowStock: true } : {})
+        useItems({})
     const { mutate: createItem } = useCreateItem()
     const { mutate: patchItem } = usePatchItem()
     const { mutate: deleteItem } = useDeleteItem()
@@ -301,8 +301,10 @@ function TabArticulos() {
     const allItems: Item[] = data?.pages.flatMap((p) => p.data.data) ?? []
     const filtered = useMemo(
         () =>
-            allItems.filter((i) =>
-                i.name.toLowerCase().includes(search.toLowerCase())
+            allItems.filter(
+                (i) =>
+                    i.name.toLowerCase().includes(search.toLowerCase()) &&
+                    (!filterLow || i.stockCurrent <= i.stockMinimum)
             ),
         [allItems, search]
     )
