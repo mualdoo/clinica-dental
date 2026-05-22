@@ -774,147 +774,180 @@ function QuoteCard({
         <div className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
             {/* Header de la tarjeta */}
             <div
-                className="flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-muted/30 transition-colors"
+                className="flex items-start sm:items-center justify-between px-4 py-3.5 gap-2 cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => setExpanded((e) => !e)}
             >
-                <div className="flex items-center gap-3 min-w-0">
-                    <ReceiptText className="h-4 w-4 text-muted-foreground shrink-0" />
+                {/* Bloque Izquierdo: Icono e Info */}
+                <div className="flex items-start sm:items-center gap-3 min-w-0">
+                    {/* Margen superior en móviles para alinearlo con la primera línea de texto */}
+                    <ReceiptText className="h-4 w-4 mt-0.5 sm:mt-0 text-muted-foreground shrink-0" />
+
                     <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-semibold text-foreground">
+                            <span className="text-sm font-semibold text-foreground truncate">
                                 Presupuesto #{quote.id.slice(-6).toUpperCase()}
                             </span>
                             <QuoteStatusBadge status={quote.status} />
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            Válido hasta {formatDate(quote.validUntil)} · Total:{' '}
-                            {formatMoney(quote.total)}
-                        </p>
+
+                        {/* Dividimos la fecha y el total en móviles para evitar que el texto se rompa feo */}
+                        <div className="mt-0.5 flex flex-col sm:flex-row sm:items-center text-xs text-muted-foreground sm:gap-1.5">
+                            <span className="truncate">
+                                Válido hasta {formatDate(quote.validUntil)}
+                            </span>
+                            <span className="hidden sm:inline">·</span>
+                            <span className="font-medium text-foreground sm:text-muted-foreground">
+                                Total: {formatMoney(quote.total)}
+                            </span>
+                        </div>
                     </div>
                 </div>
-                {canEdit && (
-                    <div className="flex items-center gap-1 shrink-0">
-                        {/* Acciones rápidas */}
-                        {isDraft && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    patchQuote({
-                                        id: quote.id,
-                                        dto: { status: 'sent' },
-                                    })
-                                }}
-                                className="hidden sm:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                            >
-                                Marcar enviado
-                            </button>
-                        )}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+
+                {/* Bloque Derecho: Botones y Chevron */}
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                    {canEdit && (
+                        <div className="flex items-center gap-1">
+                            {isDraft && (
                                 <button
-                                    onClick={(e) => e.stopPropagation()}
-                                    disabled={generatingPdf}
-                                    className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
-                                    title="Exportar PDF"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        patchQuote({
+                                            id: quote.id,
+                                            dto: { status: 'sent' },
+                                        })
+                                    }}
+                                    className="hidden sm:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                                 >
-                                    {generatingPdf ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    ) : (
-                                        <FileDown className="h-3.5 w-3.5" />
-                                    )}
+                                    Marcar enviado
                                 </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuItem
-                                    className="gap-2 cursor-pointer text-xs"
+                            )}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button
+                                        onClick={(e) => e.stopPropagation()}
+                                        disabled={generatingPdf}
+                                        className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                                        title="Exportar PDF"
+                                    >
+                                        {generatingPdf ? (
+                                            <Loader2 className="h-4 w-4 sm:h-3.5 sm:w-3.5 animate-spin" />
+                                        ) : (
+                                            <FileDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                        )}
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-56 sm:w-48"
+                                >
+                                    <DropdownMenuItem
+                                        className="gap-2 cursor-pointer text-sm sm:text-xs py-2 sm:py-1.5"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            generatePdf({
+                                                quoteId: quote.id,
+                                                createPatientFile: false,
+                                            })
+                                        }}
+                                    >
+                                        <FileDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                        Solo descargar PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        className="gap-2 cursor-pointer text-sm sm:text-xs py-2 sm:py-1.5"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            generatePdf({
+                                                quoteId: quote.id,
+                                                createPatientFile: true,
+                                            })
+                                        }}
+                                    >
+                                        <FileDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                        Descargar y guardar
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {isDraft && (
+                                <button
                                     onClick={(e) => {
                                         e.stopPropagation()
-                                        generatePdf({
-                                            quoteId: quote.id,
-                                            createPatientFile: false,
-                                        })
+                                        if (
+                                            confirm(
+                                                '¿Eliminar este presupuesto?'
+                                            )
+                                        )
+                                            deleteQuote(quote.id)
                                     }}
+                                    className="flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                 >
-                                    <FileDown className="h-3.5 w-3.5" />
-                                    Solo descargar PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="gap-2 cursor-pointer text-xs"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        generatePdf({
-                                            quoteId: quote.id,
-                                            createPatientFile: true,
-                                        })
-                                    }}
-                                >
-                                    <FileDown className="h-3.5 w-3.5" />
-                                    Descargar y guardar en expediente
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        {isDraft && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (confirm('¿Eliminar este presupuesto?'))
-                                        deleteQuote(quote.id)
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                            >
-                                <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                                    <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    {/* Chevron */}
+                    <div className="ml-1 flex h-8 w-8 sm:h-7 sm:w-7 items-center justify-center rounded-md hover:bg-muted/50 transition-colors">
+                        {expanded ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         )}
                     </div>
-                )}
-                {expanded ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground ml-1" />
-                ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
-                )}
+                </div>
             </div>
 
             {/* Contenido expandible */}
             {expanded && (
-                <div className="border-t border-border/40 px-4 pb-4 pt-3 flex flex-col gap-4">
+                <div className="border-t border-border/40 px-4 pb-4 pt-3 flex flex-col gap-4 bg-muted/10">
                     {/* Notas */}
                     {quote.notes && (
-                        <p className="text-xs text-muted-foreground italic">
+                        <p className="text-xs text-muted-foreground italic bg-background p-2 rounded-md border border-border/50">
                             "{quote.notes}"
                         </p>
                     )}
 
-                    {/* Mini tabs: Tratamientos / Pagos */}
-                    <div className="flex gap-0 rounded-lg border border-border/50 bg-muted/30 p-0.5 w-fit">
+                    {/* Mini tabs: Expanden al 100% en móviles (w-full) y se ajustan (w-fit) en escritorio */}
+                    <div className="flex w-full sm:w-fit gap-1 rounded-lg border border-border/50 bg-muted/30 p-1">
                         {(['items', 'payments'] as const).map((t) => (
                             <button
                                 key={t}
                                 onClick={() => setActiveTab(t)}
-                                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors
-                  ${
-                      activeTab === t
-                          ? 'bg-card shadow-sm text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                                className={`flex-1 sm:flex-none rounded-md px-3 py-1.5 text-xs font-medium transition-all
+              ${
+                  activeTab === t
+                      ? 'bg-card shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
                             >
                                 {t === 'items' ? 'Tratamientos' : 'Pagos'}
                             </button>
                         ))}
                     </div>
 
-                    {activeTab === 'items' ? (
-                        <QuoteItemsSection quote={quote} canEdit={canEdit} />
-                    ) : (
-                        <QuotePaymentsSection quote={quote} canEdit={canEdit} />
-                    )}
+                    {/* Contenido Tab */}
+                    <div className="overflow-x-auto">
+                        {activeTab === 'items' ? (
+                            <QuoteItemsSection
+                                quote={quote}
+                                canEdit={canEdit}
+                            />
+                        ) : (
+                            <QuotePaymentsSection
+                                quote={quote}
+                                canEdit={canEdit}
+                            />
+                        )}
+                    </div>
 
-                    {/* Cambio de estado para aceptar/rechazar */}
+                    {/* Cambio de estado para aceptar/rechazar: Columnas en móviles, fila en escritorio */}
                     {quote.status === 'sent' && (
-                        <div className="flex gap-2 pt-1 border-t border-border/40">
+                        <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-border/40">
                             <Button
                                 size="sm"
                                 variant="outline"
-                                className="gap-1.5 text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                                className="flex-1 gap-1.5 text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-10 sm:h-9"
                                 onClick={() =>
                                     patchQuote({
                                         id: quote.id,
@@ -922,12 +955,12 @@ function QuoteCard({
                                     })
                                 }
                             >
-                                <CheckCircle2 className="h-3.5 w-3.5" /> Aceptar
+                                <CheckCircle2 className="h-4 w-4" /> Aceptar
                             </Button>
                             <Button
                                 size="sm"
                                 variant="outline"
-                                className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50"
+                                className="flex-1 gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50 h-10 sm:h-9"
                                 onClick={() =>
                                     patchQuote({
                                         id: quote.id,
@@ -935,7 +968,7 @@ function QuoteCard({
                                     })
                                 }
                             >
-                                <XCircle className="h-3.5 w-3.5" /> Rechazar
+                                <XCircle className="h-4 w-4" /> Rechazar
                             </Button>
                         </div>
                     )}
@@ -972,9 +1005,10 @@ export function TabPresupuestos({ patientId }: { patientId: string }) {
     const quotes: PatientQuote[] = data?.pages.flatMap((p) => p.data.data) ?? []
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-full min-w-0">
             {/* Toolbar */}
-            <div className="flex items-center justify-between">
+            {/* Agregamos flex-wrap y gap-3 por si en un celular muy pequeño no caben en una línea */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">
                     {isLoading
                         ? 'Cargando…'
@@ -983,34 +1017,43 @@ export function TabPresupuestos({ patientId }: { patientId: string }) {
                 {canEdit && (
                     <Button
                         size="sm"
-                        className="gap-1.5"
+                        className="gap-1.5 shrink-0"
                         onClick={() => setShowNewModal(true)}
                     >
-                        <Plus className="h-3.5 w-3.5" />
-                        Nuevo Presupuesto
+                        <Plus className="h-3.5 w-3.5 shrink-0" />
+                        {/* En móviles dice "Nuevo", en PC dice "Nuevo Presupuesto" para ahorrar espacio */}
+                        <span className="sm:hidden">Nuevo</span>
+                        <span className="hidden sm:inline">
+                            Nuevo Presupuesto
+                        </span>
                     </Button>
                 )}
             </div>
 
             {/* Lista */}
             {isLoading ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 w-full min-w-0">
                     {Array.from({ length: 3 }).map((_, i) => (
                         <div
                             key={i}
-                            className="h-16 rounded-xl bg-muted animate-pulse"
+                            className="h-16 rounded-xl bg-muted animate-pulse w-full"
                         />
                     ))}
                 </div>
             ) : quotes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
-                    <CreditCard className="h-10 w-10 opacity-20" />
-                    <p className="text-sm">Sin presupuestos registrados</p>
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2 border border-dashed border-border/50 rounded-xl w-full">
+                    <CreditCard className="h-10 w-10 opacity-20 shrink-0" />
+                    <p className="text-sm text-center px-4">
+                        Sin presupuestos registrados
+                    </p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 w-full min-w-0">
                     {quotes.map((q) => (
-                        <QuoteCard key={q.id} quote={q} canEdit={canEdit} />
+                        // min-w-0 aquí es CRUCIAL para que la tarjeta no fuerce el ancho hacia afuera
+                        <div key={q.id} className="min-w-0 w-full">
+                            <QuoteCard quote={q} canEdit={canEdit} />
+                        </div>
                     ))}
                 </div>
             )}

@@ -51,6 +51,10 @@ Quote.init(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        isOdontogramCreated: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
     },
     {
         sequelize,

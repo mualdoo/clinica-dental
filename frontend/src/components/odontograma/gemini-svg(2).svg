@@ -1,0 +1,185 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 628 160" width="100%" height="100%">
+  <style>
+    /* Estilos de los dientes */
+    .tooth-rect {
+      fill: #ffffff;
+      stroke: #cbd5e1; /* slate-300 */
+      stroke-width: 2px;
+      rx: 6px; /* bordes redondeados */
+      transition: fill 0.2s ease, stroke 0.2s ease;
+      cursor: pointer;
+    }
+    
+    /* Efecto Hover */
+    .tooth-rect:hover {
+      fill: #e0f2fe; /* sky-100 */
+      stroke: #38bdf8; /* sky-400 */
+    }
+    
+    /* Estilos de los números (FDI) */
+    .tooth-label {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      fill: #64748b; /* slate-500 */
+      text-anchor: middle;
+      pointer-events: none; /* Evita que el texto bloquee el hover del rectángulo */
+    }
+    
+    /* Líneas divisorias de cuadrantes (Opcional, decorativo) */
+    .divider {
+      stroke: #e2e8f0; /* slate-200 */
+      stroke-width: 2px;
+      stroke-dasharray: 4;
+    }
+  </style>
+
+  <!-- Línea divisoria central vertical -->
+  <line x1="314" y1="10" x2="314" y2="150" class="divider" />
+  <!-- Línea divisoria central horizontal -->
+  <line x1="10" y1="80" x2="618" y2="80" class="divider" />
+
+  <!-- ================= ARCADA SUPERIOR ================= -->
+  
+  <!-- Cuadrante 1 (Superior Derecho del paciente, Izquierda en pantalla) -->
+  <g class="quadrant-1">
+    <!-- Diente 18 -->
+    <rect id="tooth_18" class="tooth-rect" x="20" y="20" width="32" height="48" />
+    <text class="tooth-label" x="36" y="49">18</text>
+    
+    <!-- Diente 17 -->
+    <rect id="tooth_17" class="tooth-rect" x="56" y="20" width="32" height="48" />
+    <text class="tooth-label" x="72" y="49">17</text>
+    
+    <!-- Diente 16 -->
+    <rect id="tooth_16" class="tooth-rect" x="92" y="20" width="32" height="48" />
+    <text class="tooth-label" x="108" y="49">16</text>
+    
+    <!-- Diente 15 -->
+    <rect id="tooth_15" class="tooth-rect" x="128" y="20" width="32" height="48" />
+    <text class="tooth-label" x="144" y="49">15</text>
+    
+    <!-- Diente 14 -->
+    <rect id="tooth_14" class="tooth-rect" x="164" y="20" width="32" height="48" />
+    <text class="tooth-label" x="180" y="49">14</text>
+    
+    <!-- Diente 13 -->
+    <rect id="tooth_13" class="tooth-rect" x="200" y="20" width="32" height="48" />
+    <text class="tooth-label" x="216" y="49">13</text>
+    
+    <!-- Diente 12 -->
+    <rect id="tooth_12" class="tooth-rect" x="236" y="20" width="32" height="48" />
+    <text class="tooth-label" x="252" y="49">12</text>
+    
+    <!-- Diente 11 -->
+    <rect id="tooth_11" class="tooth-rect" x="272" y="20" width="32" height="48" />
+    <text class="tooth-label" x="288" y="49">11</text>
+  </g>
+
+  <!-- Cuadrante 2 (Superior Izquierdo del paciente, Derecha en pantalla) -->
+  <g class="quadrant-2">
+    <!-- Diente 21 -->
+    <rect id="tooth_21" class="tooth-rect" x="324" y="20" width="32" height="48" />
+    <text class="tooth-label" x="340" y="49">21</text>
+    
+    <!-- Diente 22 -->
+    <rect id="tooth_22" class="tooth-rect" x="360" y="20" width="32" height="48" />
+    <text class="tooth-label" x="376" y="49">22</text>
+    
+    <!-- Diente 23 -->
+    <rect id="tooth_23" class="tooth-rect" x="396" y="20" width="32" height="48" />
+    <text class="tooth-label" x="412" y="49">23</text>
+    
+    <!-- Diente 24 -->
+    <rect id="tooth_24" class="tooth-rect" x="432" y="20" width="32" height="48" />
+    <text class="tooth-label" x="448" y="49">24</text>
+    
+    <!-- Diente 25 -->
+    <rect id="tooth_25" class="tooth-rect" x="468" y="20" width="32" height="48" />
+    <text class="tooth-label" x="484" y="49">25</text>
+    
+    <!-- Diente 26 -->
+    <rect id="tooth_26" class="tooth-rect" x="504" y="20" width="32" height="48" />
+    <text class="tooth-label" x="520" y="49">26</text>
+    
+    <!-- Diente 27 -->
+    <rect id="tooth_27" class="tooth-rect" x="540" y="20" width="32" height="48" />
+    <text class="tooth-label" x="556" y="49">27</text>
+    
+    <!-- Diente 28 -->
+    <rect id="tooth_28" class="tooth-rect" x="576" y="20" width="32" height="48" />
+    <text class="tooth-label" x="592" y="49">28</text>
+  </g>
+
+  <!-- ================= ARCADA INFERIOR ================= -->
+  
+  <!-- Cuadrante 4 (Inferior Derecho del paciente, Izquierda en pantalla) -->
+  <g class="quadrant-4">
+    <!-- Diente 48 -->
+    <rect id="tooth_48" class="tooth-rect" x="20" y="92" width="32" height="48" />
+    <text class="tooth-label" x="36" y="121">48</text>
+    
+    <!-- Diente 47 -->
+    <rect id="tooth_47" class="tooth-rect" x="56" y="92" width="32" height="48" />
+    <text class="tooth-label" x="72" y="121">47</text>
+    
+    <!-- Diente 46 -->
+    <rect id="tooth_46" class="tooth-rect" x="92" y="92" width="32" height="48" />
+    <text class="tooth-label" x="108" y="121">46</text>
+    
+    <!-- Diente 45 -->
+    <rect id="tooth_45" class="tooth-rect" x="128" y="92" width="32" height="48" />
+    <text class="tooth-label" x="144" y="121">45</text>
+    
+    <!-- Diente 44 -->
+    <rect id="tooth_44" class="tooth-rect" x="164" y="92" width="32" height="48" />
+    <text class="tooth-label" x="180" y="121">44</text>
+    
+    <!-- Diente 43 -->
+    <rect id="tooth_43" class="tooth-rect" x="200" y="92" width="32" height="48" />
+    <text class="tooth-label" x="216" y="121">43</text>
+    
+    <!-- Diente 42 -->
+    <rect id="tooth_42" class="tooth-rect" x="236" y="92" width="32" height="48" />
+    <text class="tooth-label" x="252" y="121">42</text>
+    
+    <!-- Diente 41 -->
+    <rect id="tooth_41" class="tooth-rect" x="272" y="92" width="32" height="48" />
+    <text class="tooth-label" x="288" y="121">41</text>
+  </g>
+
+  <!-- Cuadrante 3 (Inferior Izquierdo del paciente, Derecha en pantalla) -->
+  <g class="quadrant-3">
+    <!-- Diente 31 -->
+    <rect id="tooth_31" class="tooth-rect" x="324" y="92" width="32" height="48" />
+    <text class="tooth-label" x="340" y="121">31</text>
+    
+    <!-- Diente 32 -->
+    <rect id="tooth_32" class="tooth-rect" x="360" y="92" width="32" height="48" />
+    <text class="tooth-label" x="376" y="121">32</text>
+    
+    <!-- Diente 33 -->
+    <rect id="tooth_33" class="tooth-rect" x="396" y="92" width="32" height="48" />
+    <text class="tooth-label" x="412" y="121">33</text>
+    
+    <!-- Diente 34 -->
+    <rect id="tooth_34" class="tooth-rect" x="432" y="92" width="32" height="48" />
+    <text class="tooth-label" x="448" y="121">34</text>
+    
+    <!-- Diente 35 -->
+    <rect id="tooth_35" class="tooth-rect" x="468" y="92" width="32" height="48" />
+    <text class="tooth-label" x="484" y="121">35</text>
+    
+    <!-- Diente 36 -->
+    <rect id="tooth_36" class="tooth-rect" x="504" y="92" width="32" height="48" />
+    <text class="tooth-label" x="520" y="121">36</text>
+    
+    <!-- Diente 37 -->
+    <rect id="tooth_37" class="tooth-rect" x="540" y="92" width="32" height="48" />
+    <text class="tooth-label" x="556" y="121">37</text>
+    
+    <!-- Diente 38 -->
+    <rect id="tooth_38" class="tooth-rect" x="576" y="92" width="32" height="48" />
+    <text class="tooth-label" x="592" y="121">38</text>
+  </g>
+</svg>

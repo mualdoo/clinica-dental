@@ -13,3 +13,5 @@ notes/
 
 next-env.d.ts
 .next
+
+db-test/

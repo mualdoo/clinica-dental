@@ -8,11 +8,15 @@ import {
     File,
     Loader2,
     FolderOpen,
+    Camera, // <-- Nuevo icono importado
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { usePatientFiles, useCreatePatientFile } from '@/hooks/use-patient'
+import {
+    usePatientFiles,
+    useCreatePatientFile,
+    usePatient,
+} from '@/hooks/use-patient'
 import type { PatientFile, PatientFileType } from '@/types/patient'
-// Importa la función que creamos para comunicarse con el storage-service
 import { storageService } from '@/lib/api/storage-service'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -78,6 +82,7 @@ function FileCard({ file }: { file: PatientFile }) {
 
 export function TabArchivos({ patientId }: { patientId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const cameraInputRef = useRef<HTMLInputElement>(null) // <-- Ref para la cámara
     const loaderRef = useRef<HTMLDivElement>(null)
 
     const user = useAuthStore((s) => s.user)
@@ -90,6 +95,7 @@ export function TabArchivos({ patientId }: { patientId: string }) {
         usePatientFiles(patientId)
 
     const { mutate: createFile, isPending } = useCreatePatientFile(patientId)
+    const { data: patient } = usePatient(patientId)
 
     useEffect(() => {
         const el = loaderRef.current
@@ -117,10 +123,12 @@ export function TabArchivos({ patientId }: { patientId: string }) {
             setIsUploadingToCloud(true)
 
             // 1. Subir el archivo físico al microservicio de almacenamiento
-            // const uploadResponse = await storageService.upload(file)
-            // const publicUrl = uploadResponse.url
-            const publicUrl =
+            let publicUrl =
                 'https://jqikfytejgwtjobdudrt.supabase.co/storage/v1/object/public/archivos-clinica/uploads/1779134653814_images.jpeg'
+            if (!patient?.data.email.includes('@falso.com')) {
+                const uploadResponse = await storageService.upload(file)
+                publicUrl = uploadResponse.url
+            }
 
             // 2. Determinar el tipo lógico para la clínica
             const type: PatientFileType = file.type.startsWith('image/')
@@ -140,8 +148,9 @@ export function TabArchivos({ patientId }: { patientId: string }) {
             // Aquí sería ideal lanzar un toast de error de Shadcn UI
         } finally {
             setIsUploadingToCloud(false)
-            // Limpiamos el input para permitir subir el mismo archivo si hubo error
+            // Limpiamos AMBOS inputs para permitir subir el mismo archivo o foto si hubo error
             if (fileInputRef.current) fileInputRef.current.value = ''
+            if (cameraInputRef.current) cameraInputRef.current.value = ''
         }
     }
 
@@ -152,25 +161,57 @@ export function TabArchivos({ patientId }: { patientId: string }) {
                 <p className="text-sm text-muted-foreground">
                     {files.length} archivo{files.length !== 1 ? 's' : ''}
                 </p>
+
                 {canEdit && (
-                    <Button
-                        size="sm"
-                        className="gap-1.5"
-                        disabled={isBusy}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        {isBusy ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <Upload className="h-3.5 w-3.5" />
-                        )}
-                        Subir archivo
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {/* Botón para tomar foto */}
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5"
+                            disabled={isBusy}
+                            onClick={() => cameraInputRef.current?.click()}
+                        >
+                            {isBusy ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <Camera className="h-3.5 w-3.5" />
+                            )}
+                            Tomar foto
+                        </Button>
+
+                        {/* Botón para subir archivo/galería */}
+                        <Button
+                            size="sm"
+                            className="gap-1.5"
+                            disabled={isBusy}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            {isBusy ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                                <Upload className="h-3.5 w-3.5" />
+                            )}
+                            Subir archivo
+                        </Button>
+                    </div>
                 )}
+
+                {/* Input estándar para archivos (PDF, Galería) */}
                 <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={handleFileChange}
+                />
+
+                {/* Input forzado a cámara (en dispositivos móviles) */}
+                <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
                     className="hidden"
                     onChange={handleFileChange}
                 />

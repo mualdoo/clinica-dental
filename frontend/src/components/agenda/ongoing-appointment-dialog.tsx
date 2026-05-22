@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
     Loader2,
     CheckCircle2,
@@ -8,6 +8,9 @@ import {
     Smile,
     AlertCircle,
     ChevronRight,
+    Plus,
+    Package,
+    X,
 } from 'lucide-react'
 import {
     Dialog,
@@ -20,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAppointments, usePatchAppointment } from '@/hooks/use-agenda'
 import { useTeeth } from '@/hooks/use-patient'
-import { useTreatments, useCreateQuote } from '@/hooks/use-billing'
+import { useTreatments, useCreateQuote, useQuotes } from '@/hooks/use-billing'
 import {
     conditionFromString,
     CONDITION_LABELS,
@@ -29,6 +32,9 @@ import {
 import type { Tooth } from '@/types/patient'
 import type { Appointment } from '@/types/agenda'
 import { quoteItemService } from '@/lib/api/billing-service'
+import { useItems, useCreateMovement } from '@/hooks/use-inventory'
+import type { Item } from '@/types/inventory'
+import { movementService } from '@/lib/api/inventory-service'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatTime(iso: string) {
@@ -102,6 +108,11 @@ function ToothRow({
     )
 }
 
+interface UsedMaterial {
+    item: Item
+    quantity: number
+}
+
 // ─── Contenido del dialog ────────────────────────────────────────────────────
 function OngoingContent({
     appointment,
@@ -117,6 +128,12 @@ function OngoingContent({
     )
     const [step, setStep] = useState<'review' | 'creating' | 'done'>('review')
     const [createdQuoteId, setCreatedQuoteId] = useState<string | null>(null)
+    const [usedMaterials, setUsedMaterials] = useState<UsedMaterial[]>([])
+    const [selectedItemId, setSelectedItemId] = useState('')
+    const [materialQuantity, setMaterialQuantity] = useState(1)
+
+    const { data: itemsData } = useItems()
+    const items = itemsData?.pages.flatMap((p) => p.data.data) ?? []
 
     // Carga los dientes en el rango de la cita
     const { data: teethData, isLoading: teethLoading } = useTeeth(patientId, {
@@ -127,6 +144,9 @@ function OngoingContent({
     // Tratamientos — se buscarán por nombre de condición al crear
     const { data: treatmentsData } = useTreatments()
     const treatments = treatmentsData?.data.data ?? []
+
+    const { data: odontogramQuote, isLoading: odontogramQuoteLoading } =
+        useQuotes({ isOdontogramCreated: true })
 
     const { mutateAsync: createQuote } = useCreateQuote()
     const { mutate: patchAppointment, isPending: patching } =
@@ -175,6 +195,7 @@ function OngoingContent({
                     .toISOString()
                     .split('T')[0],
                 status: 'draft',
+                isOdontogramCreated: true,
             })
             const quoteId = quoteRes.data.id
             setCreatedQuoteId(quoteId)
@@ -215,12 +236,57 @@ function OngoingContent({
     }
 
     // ── Finalizar cita ────────────────────────────────────────────────────────
-    function handleFinish() {
+    async function handleFinish() {
+        // 1. Registra un movimiento de consumo por cada material usado
+        if (usedMaterials.length > 0) {
+            await Promise.all(
+                usedMaterials.map((m) =>
+                    movementService.create(m.item.id, {
+                        type: 'consumo',
+                        quantity: m.quantity,
+                        reason: `Cita ${appointment.id.slice(-6).toUpperCase()}`,
+                    })
+                )
+            )
+        }
+
+        // 2. Finaliza la cita
         patchAppointment(
             { id: appointment.id, dto: { status: 'completed' } },
             { onSuccess: onClose }
         )
     }
+
+    function addMaterial() {
+        const item = items.find((i) => i.id === selectedItemId)
+        if (!item || materialQuantity <= 0) return
+
+        setUsedMaterials((prev) => {
+            // Si ya está en la lista, suma la cantidad
+            const exists = prev.find((m) => m.item.id === item.id)
+            if (exists) {
+                return prev.map((m) =>
+                    m.item.id === item.id
+                        ? { ...m, quantity: m.quantity + materialQuantity }
+                        : m
+                )
+            }
+            return [...prev, { item, quantity: materialQuantity }]
+        })
+
+        setSelectedItemId('')
+        setMaterialQuantity(1)
+    }
+
+    function removeMaterial(itemId: string) {
+        setUsedMaterials((prev) => prev.filter((m) => m.item.id !== itemId))
+    }
+
+    useEffect(() => {
+        if (odontogramQuote) {
+            setStep('done')
+        }
+    }, [odontogramQuote]) // Solo se ejecuta cuando odontogramQuote cambia
 
     // ── Estado: cargando dientes ──────────────────────────────────────────────
     if (teethLoading) {
@@ -340,6 +406,80 @@ function OngoingContent({
                     </div>
                 </div>
             )}
+
+            {/* ── Materiales usados ── */}
+            <div className="flex flex-col gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Materiales usados
+                </p>
+
+                {/* Selector */}
+                <div className="flex gap-2 flex-wrap">
+                    <select
+                        value={selectedItemId}
+                        onChange={(e) => setSelectedItemId(e.target.value)}
+                        className="flex-1 min-w-40 h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    >
+                        <option value="">Seleccionar material…</option>
+                        {items.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.name} ({item.stockCurrent} {item.unit})
+                            </option>
+                        ))}
+                    </select>
+
+                    <input
+                        type="number"
+                        min={1}
+                        value={materialQuantity}
+                        onChange={(e) =>
+                            setMaterialQuantity(Number(e.target.value))
+                        }
+                        className="w-20 h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 shrink-0"
+                        disabled={!selectedItemId || materialQuantity <= 0}
+                        onClick={addMaterial}
+                    >
+                        <Plus className="h-3.5 w-3.5" />
+                        Agregar
+                    </Button>
+                </div>
+
+                {/* Lista de materiales */}
+                {usedMaterials.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                        {usedMaterials.map(({ item, quantity }) => (
+                            <div
+                                key={item.id}
+                                className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-2"
+                            >
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <Package className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                    <span className="text-xs font-medium text-foreground truncate">
+                                        {item.name}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <span className="text-xs text-muted-foreground">
+                                        ×{quantity} {item.unit}
+                                    </span>
+                                    <button
+                                        onClick={() => removeMaterial(item.id)}
+                                        className="text-muted-foreground hover:text-destructive transition-colors"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Acciones */}
             <div className="flex flex-col gap-2 pt-1 border-t border-border/40">

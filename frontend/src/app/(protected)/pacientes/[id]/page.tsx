@@ -43,6 +43,7 @@ import {
     Plus,
     X,
     Smile,
+    Pencil,
 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -456,52 +457,68 @@ export default function PacientePage({
             <div className="sticky top-0 z-30 bg-card border-b border-border shadow-sm">
                 <div className="mx-auto max-w-5xl px-4 py-3 flex flex-col gap-3">
                     {/* Fila 1: volver + nombre */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => router.back()}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                        </button>
-
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+                        {/* BLOQUE IZQUIERDO: Botón de regresar + Info del paciente */}
                         <div className="flex items-center gap-3 min-w-0">
-                            {/* Avatar */}
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                                {patient.name[0]}
-                                {patient.lastName[0]}
-                            </div>
-                            <div className="min-w-0">
-                                <h1 className="text-base font-bold text-foreground truncate leading-tight">
-                                    {patient.name} {patient.lastName}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                                    <span>
-                                        {calcAge(patient.birthDate)} años
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Phone className="h-3 w-3" />
-                                        {patient.phone}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Droplets className="h-3 w-3 text-rose-500" />
-                                        {patient.bloodType}
-                                    </span>
+                            <button
+                                onClick={() => router.back()}
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </button>
+
+                            <div className="flex items-center gap-3 min-w-0">
+                                {/* Avatar */}
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                                    {patient.name[0]}
+                                    {patient.lastName[0]}
+                                </div>
+                                {/* Datos */}
+                                <div className="min-w-0">
+                                    <h1 className="text-base font-bold text-foreground truncate leading-tight">
+                                        {patient.name} {patient.lastName}
+                                    </h1>
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
+                                        <span className="whitespace-nowrap">
+                                            {calcAge(patient.birthDate)} años
+                                        </span>
+                                        <span className="flex items-center gap-1 whitespace-nowrap">
+                                            <Phone className="h-3 w-3" />
+                                            {patient.phone}
+                                        </span>
+                                        <span className="flex items-center gap-1 whitespace-nowrap">
+                                            <Droplets className="h-3 w-3 text-rose-500" />
+                                            {patient.bloodType}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        {appointment && (
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1.5 ml-auto"
-                                onClick={() => setOngoingOpen(true)}
+
+                        {/* BLOQUE DERECHO: Botones de acción */}
+                        {/* pl-11 alinea los botones bajo el avatar en móviles. sm:pl-0 lo quita en escritorio */}
+                        <div className="flex items-center gap-2 pl-11 sm:pl-0 sm:ml-auto w-full sm:w-auto">
+                            {appointment && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 sm:flex-none gap-1.5"
+                                    onClick={() => setOngoingOpen(true)}
+                                >
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                    <span>Cita en curso</span>
+                                </Button>
+                            )}
+                            <button
+                                onClick={() =>
+                                    router.push(`/pacientes/${id}/editar`)
+                                }
+                                className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                             >
-                                <span
-                                    className={`h-1.5 w-1.5 rounded-full bg-emerald-500`}
-                                />
-                                Cita en curso
-                            </Button>
-                        )}
+                                <Pencil className="h-3.5 w-3.5 shrink-0" />
+                                <span>Editar</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Fila 2: alertas de salud */}
@@ -547,7 +564,12 @@ export default function PacientePage({
                 {/* Tabs nav pegada al header */}
                 <div className="mx-auto max-w-5xl px-4">
                     <Tabs defaultValue="resumen" className="w-full">
-                        <TabsList className="w-full">
+                        {/* 
+            1. justify-start: Alinea a la izquierda en móviles para el scroll.
+            2. overflow-x-auto flex-nowrap: Permite el scroll horizontal.
+            3. Clases de scrollbar: Ocultan la barra visualmente pero mantienen la función.
+        */}
+                        <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden flex-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {[
                                 { value: 'resumen', label: 'Resumen' },
                                 { value: 'odontograma', label: 'Odontograma' },
@@ -564,7 +586,12 @@ export default function PacientePage({
                                 <TabsTrigger
                                     key={tab.value}
                                     value={tab.value}
-                                    className="relative h-9"
+                                    /* 
+                        4. shrink-0: Evita que el botón se aplaste si no hay espacio.
+                        5. whitespace-nowrap: Evita que el texto salte a una segunda línea.
+                        6. md:flex-1: En pantallas medianas/grandes, se expanden para llenar el ancho.
+                    */
+                                    className="relative h-9 shrink-0 whitespace-nowrap md:flex-1 px-4"
                                 >
                                     {tab.label}
                                 </TabsTrigger>
@@ -572,7 +599,9 @@ export default function PacientePage({
                         </TabsList>
 
                         {/* ── Contenido de tabs ── */}
-                        <div className="mx-auto max-w-5xl px-4 py-5">
+                        {/* Nota: Quité el px-4 extra de este div porque el contenedor padre ya lo tiene 
+            y generaba un doble margen a los lados */}
+                        <div className="mx-auto max-w-5xl py-5">
                             <TabsContent value="resumen">
                                 <TabResumen patientId={id} />
                             </TabsContent>

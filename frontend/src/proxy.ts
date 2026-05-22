@@ -93,6 +93,7 @@ export function proxy(req: NextRequest) {
     }
     if (
         pathname.match(/^\/pacientes\/[^/]+/) &&
+        !pathname.startsWith('/pacientes/nuevo') &&
         session?.role === 'receptionist'
     ) {
         return NextResponse.redirect(new URL('/pacientes', req.url))

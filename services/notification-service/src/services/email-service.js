@@ -80,7 +80,7 @@ export const sendAppointmentConfirmationEmail = async (data) => {
         const htmlContent = await renderTemplate('confirmacion-cita', {
             patientFullName: data.patientName,
             dentistFullName: data.dentistName,
-            date: formatDate(data.appointmentDate),
+            date: formatDate(new Date(data.appointmentDate)),
             cubicle: data.cubicle,
         })
 

@@ -50,7 +50,7 @@ router.post(
 )
 router.patch(
     '/appointment/:id',
-    authorize(['admin', 'receptionist', 'patient']),
+    authorize(['admin', 'receptionist', 'patient', 'dentist']),
     appointmentController.update
 )
 router.delete(
